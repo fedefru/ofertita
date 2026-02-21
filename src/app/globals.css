@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Surface ─────────────────────────────────────────── */
+    --background: 210 40% 98%;       /* #F8FAFC — slate off-white, cool canvas */
+    --card: 0 0% 100%;               /* pure white cards on cool canvas */
+    --popover: 0 0% 100%;
+
+    /* ── Foreground ──────────────────────────────────────── */
+    --foreground: 222 47% 11%;       /* #0F172A — slate-900 ink */
+    --card-foreground: 222 47% 11%;
+    --popover-foreground: 222 47% 11%;
+
+    /* ── Primary — índigo marketplace ───────────────────── */
+    --primary: 239 84% 67%;          /* #6366F1 — indigo */
+    --primary-foreground: 0 0% 100%;
+
+    /* ── Secondary ───────────────────────────────────────── */
+    --secondary: 214 32% 91%;        /* slate-200 */
+    --secondary-foreground: 222 47% 20%;
+
+    /* ── Muted ───────────────────────────────────────────── */
+    --muted: 214 32% 94%;            /* slate-100 */
+    --muted-foreground: 215 16% 47%; /* #64748B slate-500 */
+
+    /* ── Accent — esmeralda ahorro ───────────────────────── */
+    --accent: 152 76% 93%;           /* emerald tint */
+    --accent-foreground: 160 84% 23%;
+
+    /* ── Semantic ────────────────────────────────────────── */
+    --destructive: 0 78% 52%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* ── Chrome ──────────────────────────────────────────── */
+    --border: 214 32% 91%;           /* slate-200 — subtle cool border */
+    --input: 214 32% 94%;            /* slate-100 inset */
+    --ring: 239 84% 67%;             /* indigo focus ring */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 25 20% 8%;
+    --card: 25 18% 11%;
+    --popover: 25 18% 11%;
+
+    --foreground: 40 20% 94%;
+    --card-foreground: 40 20% 94%;
+    --popover-foreground: 40 20% 94%;
+
+    --primary: 38 85% 55%;
+    --primary-foreground: 25 40% 8%;
+
+    --secondary: 25 15% 18%;
+    --secondary-foreground: 40 15% 85%;
+
+    --muted: 25 15% 16%;
+    --muted-foreground: 35 8% 55%;
+
+    --accent: 38 30% 20%;
+    --accent-foreground: 38 60% 85%;
+
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 25 12% 22%;
+    --input: 25 12% 20%;
+    --ring: 38 85% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+}
+
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
