@@ -23,13 +23,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 })
     }
 
+    const maxSize = bucket === 'business-assets' ? 2 * 1024 * 1024 : 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      return NextResponse.json({ error: 'Archivo demasiado grande' }, { status: 413 })
+    }
+
     const allowedBuckets = ['offer-images', 'business-assets']
     if (!allowedBuckets.includes(bucket)) {
       return NextResponse.json({ error: 'Bucket inválido' }, { status: 400 })
     }
 
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-    const filename = `${user.id}/${folder ? folder + '/' : ''}${Date.now()}.${ext}`
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!allowedMimes.includes(file.type)) {
+      return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 400 })
+    }
+
+    const mimeToExt: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+    }
+    const ext = mimeToExt[file.type]
+
+    // Sanitize folder: only allow alphanumeric, hyphens and underscores
+    const safeFolder = folder.replace(/[^a-zA-Z0-9_-]/g, '')
+    const filename = `${user.id}/${safeFolder ? safeFolder + '/' : ''}${Date.now()}.${ext}`
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)

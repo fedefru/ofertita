@@ -13,9 +13,9 @@ interface OfferDetailProps {
     id: string
     title: string
     description: string | null
-    original_price: number
-    offer_price: number
-    discount_pct: number
+    original_price: number | null
+    offer_price: number | null
+    discount_pct: number | null
     image_url: string | null
     start_date: string
     end_date: string
@@ -45,7 +45,8 @@ interface OfferDetailProps {
 export function OfferDetail({ offer }: OfferDetailProps) {
   const { label: timeLabel, isUrgent, isExpired } = formatTimeLeft(offer.end_date)
   const { business } = offer
-  const savings = offer.original_price - offer.offer_price
+  const hasPrices = offer.original_price != null && offer.offer_price != null
+  const savings = hasPrices ? offer.original_price! - offer.offer_price! : null
   const mapsUrl = `https://maps.google.com/?q=${business.lat},${business.lng}`
 
   const categoryBg = `${business.category.color}1a`
@@ -99,14 +100,18 @@ export function OfferDetail({ offer }: OfferDetailProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
 
           {/* Discount pill — firma del sistema */}
-          <div className="absolute bottom-5 left-5">
-            <span className="flex items-center gap-2 rounded-full bg-[#6366F1] px-4 py-2 shadow-lg">
-              <span className="text-sm font-bold text-white">
-                {formatDiscountPct(offer.discount_pct)}
+          {offer.discount_pct != null && (
+            <div className="absolute bottom-5 left-5">
+              <span className="flex items-center gap-2 rounded-full bg-[#6366F1] px-4 py-2 shadow-lg">
+                <span className="text-sm font-bold text-white">
+                  {formatDiscountPct(offer.discount_pct)}
+                </span>
+                {savings != null && (
+                  <span className="text-xs text-white/70">· ahorra {formatCurrency(savings)}</span>
+                )}
               </span>
-              <span className="text-xs text-white/70">· ahorra {formatCurrency(savings)}</span>
-            </span>
-          </div>
+            </div>
+          )}
         </motion.div>
       )}
 
@@ -141,19 +146,21 @@ export function OfferDetail({ offer }: OfferDetailProps) {
           </motion.h1>
 
           {/* Price */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.24, ease: EASE }}
-            className="flex items-baseline gap-3"
-          >
-            <span className="text-[2.2rem] font-black leading-none text-[#10B981]">
-              {formatCurrency(offer.offer_price)}
-            </span>
-            <span className="text-lg text-[#CBD5E1] line-through">
-              {formatCurrency(offer.original_price)}
-            </span>
-          </motion.div>
+          {hasPrices && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.24, ease: EASE }}
+              className="flex items-baseline gap-3"
+            >
+              <span className="text-[2.2rem] font-black leading-none text-[#10B981]">
+                {formatCurrency(offer.offer_price)}
+              </span>
+              <span className="text-lg text-[#CBD5E1] line-through">
+                {formatCurrency(offer.original_price)}
+              </span>
+            </motion.div>
+          )}
 
           {/* Time badge */}
           <motion.div

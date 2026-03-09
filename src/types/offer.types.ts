@@ -9,9 +9,9 @@ export type NearbyOffer = {
   id: string
   title: string
   description: string | null
-  original_price: number
-  offer_price: number
-  discount_pct: number
+  original_price: number | null
+  offer_price: number | null
+  discount_pct: number | null
   image_url: string | null
   start_date: string
   end_date: string

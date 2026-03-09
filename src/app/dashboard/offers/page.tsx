@@ -2,10 +2,11 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { PlusCircle, Edit, ToggleLeft, ToggleRight } from 'lucide-react'
+import { PlusCircle, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { formatCurrency, formatTimeLeft } from '@/lib/formatters'
+import { formatCurrency, formatDiscountPct, formatTimeLeft } from '@/lib/formatters'
+import { DeleteOfferButton } from '@/components/offers/DeleteOfferButton'
 
 export const metadata: Metadata = { title: 'Mis ofertas' }
 
@@ -35,7 +36,7 @@ export default async function OffersPage() {
           <h1 className="text-2xl font-bold">Mis ofertas</h1>
           <p className="text-muted-foreground">{offers?.length ?? 0} ofertas en total</p>
         </div>
-        <Button asChild>
+        <Button asChild className="bg-[#F97316] hover:bg-[#EA580C] text-white">
           <Link href="/dashboard/offers/new">
             <PlusCircle className="mr-2 h-4 w-4" />
             Nueva oferta
@@ -46,7 +47,7 @@ export default async function OffersPage() {
       {!offers?.length ? (
         <div className="text-center py-16">
           <p className="text-muted-foreground mb-4">Aún no has creado ninguna oferta</p>
-          <Button asChild>
+          <Button asChild className="bg-[#F97316] hover:bg-[#EA580C] text-white">
             <Link href="/dashboard/offers/new">Crear primera oferta</Link>
           </Button>
         </div>
@@ -64,14 +65,21 @@ export default async function OffersPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium truncate">{offer.title}</p>
-                    <Badge variant={isActive ? 'default' : 'secondary'}>
+                    <Badge
+                      className={isActive ? 'bg-[#FFF7ED] text-[#EA580C] border-[#FDBA74]' : ''}
+                      variant={isActive ? 'outline' : 'secondary'}
+                    >
                       {isActive ? 'Activa' : isExpired ? 'Expirada' : 'Inactiva'}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
                     <span>{(offer.business as { name: string }).name}</span>
-                    <span>{formatCurrency(offer.offer_price)}</span>
-                    <span>-{Math.round(offer.discount_pct)}%</span>
+                    {offer.offer_price != null && (
+                      <span>{formatCurrency(offer.offer_price)}</span>
+                    )}
+                    {offer.discount_pct != null && offer.discount_pct > 0 && (
+                      <span>{formatDiscountPct(offer.discount_pct)}</span>
+                    )}
                     <span>{label}</span>
                   </div>
                 </div>
@@ -85,6 +93,7 @@ export default async function OffersPage() {
                       <Edit className="h-4 w-4" />
                     </Link>
                   </Button>
+                  <DeleteOfferButton offerId={offer.id} />
                 </div>
               </div>
             )

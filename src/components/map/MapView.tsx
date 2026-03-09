@@ -12,11 +12,57 @@ interface MapViewProps {
   onOfferClick?: (offerId: string) => void
 }
 
+// ─── XSS sanitization ────────────────────────────────────────────────────────
+
+function esc(str: string | null | undefined): string {
+  if (!str) return ''
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
+
 // ─── Marker HTML ─────────────────────────────────────────────────────────────
 
-function buildOfferMarker(offer: NearbyOffer): string {
-  const discount = formatDiscountPct(offer.discount_pct)
-  const price = formatCurrency(offer.offer_price)
+function buildOfferMarker(offers: NearbyOffer[]): string {
+  const count = offers.length
+  const first = offers[0]
+  const discount = formatDiscountPct(first.discount_pct)
+  const price = formatCurrency(first.offer_price)
+
+  if (count === 1) {
+    return `
+      <div style="
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1px;
+        background: #ffffff;
+        border: 1.5px solid rgba(99,102,241,0.18);
+        border-radius: 10px;
+        padding: 5px 10px 6px;
+        font-family: system-ui, -apple-system, sans-serif;
+        white-space: nowrap;
+        cursor: pointer;
+        box-shadow: 0 2px 12px rgba(99,102,241,0.18), 0 1px 4px rgba(15,23,42,0.10);
+      ">
+        <span style="font-size:12px;font-weight:800;color:#6366F1;line-height:1;">${esc(discount)}</span>
+        <span style="font-size:10px;font-weight:700;color:#10B981;line-height:1;">${esc(price)}</span>
+        <div style="
+          position: absolute;
+          bottom: -7px; left: 50%;
+          transform: translateX(-50%) rotate(45deg);
+          width: 10px; height: 10px;
+          background: #ffffff;
+          border-right: 1.5px solid rgba(99,102,241,0.18);
+          border-bottom: 1.5px solid rgba(99,102,241,0.18);
+        "></div>
+      </div>
+    `
+  }
 
   return `
     <div style="
@@ -25,102 +71,64 @@ function buildOfferMarker(offer: NearbyOffer): string {
       flex-direction: column;
       align-items: center;
       gap: 1px;
-      background: #ffffff;
-      border: 1.5px solid rgba(99,102,241,0.18);
+      background: #6366F1;
       border-radius: 10px;
       padding: 5px 10px 6px;
       font-family: system-ui, -apple-system, sans-serif;
       white-space: nowrap;
       cursor: pointer;
-      box-shadow: 0 2px 12px rgba(99,102,241,0.18), 0 1px 4px rgba(15,23,42,0.10);
-      transition: transform 0.15s ease;
+      box-shadow: 0 2px 12px rgba(99,102,241,0.35), 0 1px 4px rgba(15,23,42,0.10);
     ">
-      <span style="
-        font-size: 12px;
-        font-weight: 800;
-        color: #6366F1;
-        line-height: 1;
-        letter-spacing: -0.01em;
-      ">${discount}</span>
-      <span style="
-        font-size: 10px;
-        font-weight: 700;
-        color: #10B981;
-        line-height: 1;
-      ">${price}</span>
-      <!-- Caret pointer -->
+      <span style="font-size:12px;font-weight:800;color:#ffffff;line-height:1;">${count} ofertas</span>
+      <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.75);line-height:1;">${esc(first.business_name)}</span>
       <div style="
         position: absolute;
-        bottom: -7px;
-        left: 50%;
+        bottom: -7px; left: 50%;
         transform: translateX(-50%) rotate(45deg);
-        width: 10px;
-        height: 10px;
-        background: #ffffff;
-        border-right: 1.5px solid rgba(99,102,241,0.18);
-        border-bottom: 1.5px solid rgba(99,102,241,0.18);
+        width: 10px; height: 10px;
+        background: #6366F1;
       "></div>
     </div>
   `
 }
 
-function buildPopup(offer: NearbyOffer): string {
-  const price = formatCurrency(offer.offer_price)
-  const original = formatCurrency(offer.original_price)
+function buildPopup(offers: NearbyOffer[]): string {
+  if (offers.length === 1) {
+    const offer = offers[0]
+    const price = formatCurrency(offer.offer_price)
+    const original = formatCurrency(offer.original_price)
+    return `
+      <div style="font-family:system-ui,-apple-system,sans-serif;min-width:200px;max-width:240px;padding:2px;">
+        <p style="font-size:14px;font-weight:700;color:#1F2937;margin:0 0 4px;line-height:1.35;">${esc(offer.title)}</p>
+        <p style="font-size:12px;color:#94A3B8;margin:0 0 10px;">${esc(offer.business_name)}</p>
+        ${offer.offer_price != null ? `
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;">
+            <span style="font-size:18px;font-weight:800;color:#10B981;line-height:1;">${esc(price)}</span>
+            ${offer.original_price != null ? `<span style="font-size:12px;color:#CBD5E1;text-decoration:line-through;">${esc(original)}</span>` : ''}
+          </div>` : ''}
+        <a href="/offers/${esc(offer.id)}" style="display:block;text-align:center;background:#6366F1;color:white;padding:9px 16px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:700;box-shadow:0 4px 12px rgba(99,102,241,0.30);">Ver oferta →</a>
+      </div>
+    `
+  }
+
+  const items = offers.map((offer) => {
+    const price = formatCurrency(offer.offer_price)
+    return `
+      <a href="/offers/${esc(offer.id)}" style="
+        display:flex;align-items:center;justify-content:space-between;gap:12px;
+        padding:8px 10px;border-radius:10px;text-decoration:none;
+        background:#F8FAFC;margin-bottom:6px;
+      ">
+        <span style="font-size:13px;font-weight:600;color:#1F2937;line-height:1.3;flex:1;">${esc(offer.title)}</span>
+        ${offer.offer_price != null ? `<span style="font-size:13px;font-weight:700;color:#10B981;white-space:nowrap;">${esc(price)}</span>` : ''}
+      </a>
+    `
+  }).join('')
 
   return `
-    <div style="
-      font-family: system-ui, -apple-system, sans-serif;
-      min-width: 200px;
-      max-width: 240px;
-      padding: 2px;
-    ">
-      <p style="
-        font-size: 14px;
-        font-weight: 700;
-        color: #1F2937;
-        margin: 0 0 4px;
-        line-height: 1.35;
-      ">${offer.title}</p>
-
-      <p style="
-        font-size: 12px;
-        color: #94A3B8;
-        margin: 0 0 10px;
-      ">${offer.business_name}</p>
-
-      <div style="
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
-        margin-bottom: 12px;
-      ">
-        <span style="
-          font-size: 18px;
-          font-weight: 800;
-          color: #10B981;
-          line-height: 1;
-        ">${price}</span>
-        <span style="
-          font-size: 12px;
-          color: #CBD5E1;
-          text-decoration: line-through;
-        ">${original}</span>
-      </div>
-
-      <a href="/offers/${offer.id}" style="
-        display: block;
-        text-align: center;
-        background: #6366F1;
-        color: white;
-        padding: 9px 16px;
-        border-radius: 10px;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 700;
-        box-shadow: 0 4px 12px rgba(99,102,241,0.30);
-        letter-spacing: -0.01em;
-      ">Ver oferta →</a>
+    <div style="font-family:system-ui,-apple-system,sans-serif;min-width:220px;max-width:260px;padding:2px;">
+      <p style="font-size:13px;font-weight:700;color:#6366F1;margin:0 0 10px;">${esc(offers[0].business_name)}</p>
+      ${items}
     </div>
   `
 }
@@ -203,25 +211,33 @@ export function MapView({ offers, userLocation, center, onOfferClick }: MapViewP
           .bindPopup('<span style="font-family:system-ui;font-size:13px;font-weight:600;color:#6366F1">Tu ubicación</span>')
       }
 
-      // ── Offer markers ───────────────────────────────────────────────────
+      // ── Offer markers — grouped by location ─────────────────────────────
+      const grouped = new Map<string, NearbyOffer[]>()
       offers.forEach((offer) => {
+        const key = `${offer.business_lat},${offer.business_lng}`
+        if (!grouped.has(key)) grouped.set(key, [])
+        grouped.get(key)!.push(offer)
+      })
+
+      grouped.forEach((group) => {
+        const { business_lat, business_lng } = group[0]
         const markerIcon = L.divIcon({
           className: '',
-          html: buildOfferMarker(offer),
-          // iconSize accounts for card (width varies) + 8px caret below
+          html: buildOfferMarker(group),
           iconSize: [80, 50],
-          // Anchor at caret tip — horizontal center, full height
           iconAnchor: [40, 50],
           popupAnchor: [0, -54],
         })
 
-        L.marker([offer.business_lat, offer.business_lng], { icon: markerIcon })
+        L.marker([business_lat, business_lng], { icon: markerIcon })
           .addTo(map)
-          .bindPopup(buildPopup(offer), {
-            maxWidth: 260,
+          .bindPopup(buildPopup(group), {
+            maxWidth: 280,
             className: 'ofertita-popup',
           })
-          .on('click', () => onOfferClick?.(offer.id))
+          .on('click', () => {
+            if (group.length === 1) onOfferClick?.(group[0].id)
+          })
       })
     })
 

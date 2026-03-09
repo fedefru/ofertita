@@ -125,8 +125,8 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
-          offer_price: number
-          original_price: number
+          offer_price: number | null
+          original_price: number | null
           save_count: number
           start_date: string
           title: string
@@ -142,8 +142,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
-          offer_price: number
-          original_price: number
+          offer_price?: number | null
+          original_price?: number | null
           save_count?: number
           start_date?: string
           title: string
@@ -159,8 +159,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
-          offer_price?: number
-          original_price?: number
+          offer_price?: number | null
+          original_price?: number | null
           save_count?: number
           start_date?: string
           title?: string
@@ -571,20 +571,20 @@ export type Database = {
           business_id: string
           business_lat: number
           business_lng: number
-          business_logo: string
+          business_logo: string | null
           business_name: string
           business_slug: string
-          category_color: string
+          category_color: string | null
           category_name: string
           category_slug: string
-          description: string
-          discount_pct: number
+          description: string | null
+          discount_pct: number | null
           distance_meters: number
           end_date: string
           id: string
-          image_url: string
-          offer_price: number
-          original_price: number
+          image_url: string | null
+          offer_price: number | null
+          original_price: number | null
           save_count: number
           start_date: string
           title: string

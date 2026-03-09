@@ -37,14 +37,14 @@ export function DashboardSidebar() {
               className={cn(
                 'group flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors',
                 isActive
-                  ? 'bg-accent text-accent-foreground font-semibold'
-                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                  ? 'bg-[#FFF7ED] text-[#EA580C] font-semibold'
+                  : 'text-muted-foreground hover:bg-[#FFF7ED]/60 hover:text-foreground'
               )}
             >
               {isActive && (
-                <span className="absolute left-3 h-4 w-0.5 rounded-full bg-primary" />
+                <span className="absolute left-3 h-4 w-0.5 rounded-full bg-[#F97316]" />
               )}
-              <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground')} />
+              <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-[#F97316]' : 'text-muted-foreground group-hover:text-foreground')} />
               {label}
             </Link>
           )

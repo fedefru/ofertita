@@ -1,11 +1,47 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Clock, MapPin } from 'lucide-react'
+import { Clock, MapPin, Utensils, Leaf, Wheat, Fish, Coffee, ShoppingBag, type LucideIcon } from 'lucide-react'
 import { SaveButton } from './SaveButton'
-import { formatTimeLeft, formatDiscountPct, formatCurrency } from '@/lib/formatters'
-import { formatDistance, metersToKm } from '@/lib/distance'
+import { formatTimeLeft, formatTimeAgo, formatDiscountPct, formatCurrency } from '@/lib/formatters'
+import { metersToBlocks } from '@/lib/distance'
 import type { NearbyOffer } from '@/types/offer.types'
 import { cn } from '@/lib/utils'
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+
+/** Darkens a hex color by `amount` per channel for gradient backgrounds. */
+function darkHex(hex: string, amount = 70): string {
+  const c = hex.replace('#', '')
+  if (c.length !== 6) return '#0F172A'
+  const r = Math.max(0, parseInt(c.slice(0, 2), 16) - amount)
+  const g = Math.max(0, parseInt(c.slice(2, 4), 16) - amount)
+  const b = Math.max(0, parseInt(c.slice(4, 6), 16) - amount)
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+}
+
+/** Maps category slug to a Lucide icon. */
+function getSlugIcon(slug: string): LucideIcon {
+  const s = slug.toLowerCase()
+  if (s.includes('carn')) return Utensils
+  if (s.includes('verdur') || s.includes('frut') || s.includes('hort')) return Leaf
+  if (s.includes('panad') || s.includes('alfaj') || s.includes('reposter')) return Wheat
+  if (s.includes('pesc') || s.includes('marisq')) return Fish
+  if (s.includes('cafe') || s.includes('rest') || s.includes('rotis') || s.includes('comid')) return Coffee
+  return ShoppingBag
+}
+
+// ─── Sub-elements ─────────────────────────────────────────────────────────────
+
+function LiveDot() {
+  return (
+    <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+    </span>
+  )
+}
+
+// ─── Card ─────────────────────────────────────────────────────────────────────
 
 interface OfferCardProps {
   offer: NearbyOffer
@@ -14,74 +50,81 @@ interface OfferCardProps {
   featured?: boolean
 }
 
-/**
- * Intent: usuario en modo exploración, escaneo rápido, decisión en segundos.
- * Surfaces: blanco puro sobre #F8FAFC canvas. Sombra teñida de índigo.
- * Depth: sombras sutiles — no borders. Una sola estrategia.
- * Signature: discount pill muestra % + euros ahorrados. Horizontal layout en featured.
- */
 export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: OfferCardProps) {
   const { label: timeLabel, isUrgent, isExpired } = formatTimeLeft(offer.end_date)
-  const savings = offer.original_price - offer.offer_price
-  const km = metersToKm(offer.distance_meters)
+  const { label: publishedLabel, isRecent } = formatTimeAgo(offer.start_date)
 
-  const categoryBg = `${offer.category_color}1a`   // ~10% opacity hex
+  const hasPrice = offer.offer_price !== null && offer.offer_price > 0
+  const hasOriginal = offer.original_price !== null && (offer.original_price ?? 0) > 0
+  const hasDiscount = offer.discount_pct !== null && (offer.discount_pct ?? 0) > 0
+
   const categoryColor = offer.category_color ?? '#6366F1'
+  const categoryBg = `${categoryColor}1a`
+  const Icon = getSlugIcon(offer.category_slug)
+  const placeholderGradient = `linear-gradient(145deg, ${darkHex(categoryColor, 90)} 0%, ${darkHex(categoryColor, 55)} 100%)`
+
+  const cardShadow = '0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)'
+  const cardHoverShadow = '0 14px 36px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.07)'
 
   const timeClass = cn(
-    'inline-flex items-center gap-1 text-[11px] shrink-0',
-    isUrgent && !isExpired ? 'font-semibold text-[#EF4444]' : 'text-[#94A3B8]',
-    isExpired && 'line-through'
+    'inline-flex items-center gap-1 text-[11px] flex-shrink-0',
+    isUrgent && !isExpired ? 'font-semibold text-red-500' : 'text-[#94A3B8]',
+    isExpired && 'line-through opacity-60'
   )
 
-  // Signature element: pill único con % + ahorro en euros
-  const discountPill = (
-    <span className="flex items-center gap-1.5 rounded-full bg-[#6366F1] px-3 py-1.5 shadow-sm">
-      <span className="text-[11px] font-bold text-white">{formatDiscountPct(offer.discount_pct)}</span>
-      <span className="hidden text-[10px] text-white/70 sm:inline">
-        · ahorra {formatCurrency(savings)}
-      </span>
-    </span>
-  )
-
-  // ─── FEATURED (horizontal) — col-span-2 en bento grid ───────────────────────
+  // ── FEATURED (horizontal, col-span-2) ────────────────────────────────────────
   if (featured) {
     return (
       <Link href={`/offers/${offer.id}`} className="block group">
         <div
-          className={cn(
-            'relative flex flex-col sm:flex-row overflow-hidden rounded-[20px] bg-white',
-            'shadow-[0_2px_16px_rgba(99,102,241,0.08),0_1px_4px_rgba(15,23,42,0.05)]',
-            'hover:shadow-[0_8px_28px_rgba(99,102,241,0.16),0_3px_8px_rgba(15,23,42,0.08)]',
-            'transition-all duration-300 hover:-translate-y-0.5',
-            'sm:h-52'
-          )}
+          className="relative flex flex-col overflow-hidden rounded-[20px] bg-white transition-all duration-300 hover:-translate-y-1 sm:flex-row sm:h-56"
+          style={{ boxShadow: cardShadow }}
+          onMouseEnter={(e) => { e.currentTarget.style.boxShadow = cardHoverShadow }}
+          onMouseLeave={(e) => { e.currentTarget.style.boxShadow = cardShadow }}
         >
-          {/* Image — full width mobile / 44% desktop */}
-          <div className="relative aspect-[3/2] w-full flex-shrink-0 overflow-hidden sm:aspect-auto sm:w-[44%]">
+          {/* Image / placeholder */}
+          <div className="relative aspect-[3/2] w-full flex-shrink-0 overflow-hidden sm:aspect-auto sm:w-[42%]">
             {offer.image_url ? (
-              <Image
-                src={offer.image_url}
-                alt={offer.title}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                sizes="(max-width: 640px) 100vw, 44vw"
-              />
+              <>
+                <Image
+                  src={offer.image_url}
+                  alt={offer.title}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                  sizes="(max-width: 640px) 100vw, 42vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-black/10" />
+              </>
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-[#F1F5F9]">
-                <span className="text-5xl opacity-15">🏷️</span>
+              <div
+                className="flex h-full w-full items-center justify-center"
+                style={{ background: placeholderGradient }}
+              >
+                <Icon className="h-16 w-16 text-white/20 transition-transform duration-500 group-hover:scale-110" />
               </div>
             )}
-            {/* Gradient — mobile: bottom, desktop: right edge blend */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-black/10" />
-            {/* Discount ribbon */}
-            <div className="absolute bottom-3 left-3">{discountPill}</div>
+            {/* Live badge */}
+            {isRecent && (
+              <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                <LiveDot />
+                Live
+              </span>
+            )}
+            {/* Discount badge */}
+            {hasDiscount && (
+              <span
+                className="absolute bottom-3 left-3 rounded-full bg-[#6366F1] px-3 py-1.5 text-[12px] font-black text-white"
+                style={{ boxShadow: '0 2px 8px rgba(99,102,241,0.45)' }}
+              >
+                {formatDiscountPct(offer.discount_pct)}
+              </span>
+            )}
           </div>
 
           {/* Content */}
-          <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
-            {/* Category + time */}
-            <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-1 flex-col justify-between p-5">
+            {/* Top */}
+            <div className="flex items-start justify-between gap-2">
               <span
                 className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold"
                 style={{ backgroundColor: categoryBg, color: categoryColor }}
@@ -95,31 +138,48 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
             </div>
 
             {/* Title + business */}
-            <div className="mt-2 flex-1">
-              <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug text-[#0F172A] transition-colors duration-200 group-hover:text-[#6366F1]">
+            <div className="my-3 flex-1">
+              <h3 className="line-clamp-2 text-[16px] font-bold leading-snug text-[#0F172A] transition-colors group-hover:text-[#6366F1]">
                 {offer.title}
               </h3>
-              <p className="mt-1 truncate text-xs text-[#94A3B8]">{offer.business_name}</p>
+              <p className="mt-1 truncate text-[12px] text-[#94A3B8]">{offer.business_name}</p>
             </div>
 
             {/* Price */}
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-xl font-bold text-[#10B981]">
-                {formatCurrency(offer.offer_price)}
-              </span>
-              <span className="text-sm text-[#94A3B8] line-through">
-                {formatCurrency(offer.original_price)}
-              </span>
-            </div>
+            {hasPrice ? (
+              <div className="flex items-baseline gap-2">
+                <span className="text-[22px] font-black text-[#F97316]">
+                  {formatCurrency(offer.offer_price)}
+                </span>
+                {hasOriginal && hasDiscount && (
+                  <span className="text-[13px] text-[#94A3B8] line-through">
+                    {formatCurrency(offer.original_price)}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <p className="text-[14px] font-semibold text-[#6366F1]">Consultá condiciones</p>
+            )}
 
-            {/* Distance */}
-            <div className="mt-2 flex items-center gap-1 text-xs text-[#94A3B8]">
-              <MapPin className="h-3 w-3" />
-              {formatDistance(km)}
+            {/* Distance + published */}
+            <div className="mt-2 flex items-center justify-between">
+              <span className="flex items-center gap-1 text-[12px] text-[#94A3B8]">
+                <MapPin className="h-3.5 w-3.5" />
+                {metersToBlocks(offer.distance_meters)}
+              </span>
+              <span
+                className={cn(
+                  'flex items-center gap-1.5 text-[11px]',
+                  isRecent ? 'font-semibold text-emerald-600' : 'text-[#94A3B8]'
+                )}
+              >
+                {isRecent && <LiveDot />}
+                {publishedLabel}
+              </span>
             </div>
           </div>
 
-          {/* Save button */}
+          {/* Save */}
           <div className="absolute right-3 top-3">
             <SaveButton offerId={offer.id} isSaved={isSaved} onToggle={onToggleSave} />
           </div>
@@ -128,37 +188,56 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
     )
   }
 
-  // ─── NORMAL (vertical) ───────────────────────────────────────────────────────
+  // ── NORMAL (vertical) ────────────────────────────────────────────────────────
   return (
     <Link href={`/offers/${offer.id}`} className="block group">
       <div
-        className={cn(
-          'overflow-hidden rounded-[20px] bg-white',
-          'shadow-[0_2px_16px_rgba(99,102,241,0.08),0_1px_4px_rgba(15,23,42,0.05)]',
-          'hover:shadow-[0_8px_28px_rgba(99,102,241,0.16),0_3px_8px_rgba(15,23,42,0.08)]',
-          'transition-all duration-300 hover:-translate-y-0.5'
-        )}
+        className="overflow-hidden rounded-[20px] bg-white transition-all duration-300 hover:-translate-y-1"
+        style={{ boxShadow: cardShadow }}
+        onMouseEnter={(e) => { e.currentTarget.style.boxShadow = cardHoverShadow }}
+        onMouseLeave={(e) => { e.currentTarget.style.boxShadow = cardShadow }}
       >
-        {/* Image */}
-        <div className="relative aspect-[3/2] overflow-hidden">
+        {/* Image / placeholder */}
+        <div className="relative aspect-[4/3] overflow-hidden">
           {offer.image_url ? (
-            <Image
-              src={offer.image_url}
-              alt={offer.title}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            />
+            <>
+              <Image
+                src={offer.image_url}
+                alt={offer.title}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
+            </>
           ) : (
-            <div className="flex h-full items-center justify-center bg-[#F1F5F9]">
-              <span className="text-4xl opacity-15">🏷️</span>
+            <div
+              className="flex h-full w-full items-center justify-center"
+              style={{ background: placeholderGradient }}
+            >
+              <Icon className="h-14 w-14 text-white/20 transition-transform duration-500 group-hover:scale-110" />
             </div>
           )}
-          {/* Bottom gradient for legibility over image */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent" />
-          {/* Discount ribbon */}
-          <div className="absolute bottom-3 left-3">{discountPill}</div>
-          {/* Save button */}
+
+          {/* Live badge */}
+          {isRecent && (
+            <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/40 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+              <LiveDot />
+              Live
+            </span>
+          )}
+
+          {/* Discount badge */}
+          {hasDiscount && (
+            <span
+              className="absolute bottom-3 left-3 rounded-full bg-[#6366F1] px-2.5 py-1.5 text-[12px] font-black text-white"
+              style={{ boxShadow: '0 2px 8px rgba(99,102,241,0.45)' }}
+            >
+              {formatDiscountPct(offer.discount_pct)}
+            </span>
+          )}
+
+          {/* Save */}
           <div className="absolute right-2.5 top-2.5">
             <SaveButton offerId={offer.id} isSaved={isSaved} onToggle={onToggleSave} />
           </div>
@@ -166,7 +245,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
 
         {/* Content */}
         <div className="space-y-2 p-4">
-          {/* Category + time */}
+          {/* Category + time until expiry */}
           <div className="flex items-center justify-between gap-2">
             <span
               className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
@@ -181,26 +260,43 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
           </div>
 
           {/* Title */}
-          <h3 className="line-clamp-2 text-[13px] font-semibold leading-snug text-[#0F172A] transition-colors duration-200 group-hover:text-[#6366F1]">
+          <h3 className="line-clamp-2 text-[13px] font-bold leading-snug text-[#0F172A] transition-colors group-hover:text-[#6366F1]">
             {offer.title}
           </h3>
 
           {/* Business */}
           <p className="truncate text-[11px] text-[#94A3B8]">{offer.business_name}</p>
 
-          {/* Price row + distance */}
-          <div className="flex items-center justify-between pt-0.5">
+          {/* Price */}
+          {hasPrice ? (
             <div className="flex items-baseline gap-1.5">
-              <span className="text-[15px] font-bold text-[#10B981]">
+              <span className="text-[18px] font-black text-[#F97316]">
                 {formatCurrency(offer.offer_price)}
               </span>
-              <span className="text-[11px] text-[#94A3B8] line-through">
-                {formatCurrency(offer.original_price)}
-              </span>
+              {hasOriginal && hasDiscount && (
+                <span className="text-[11px] text-[#94A3B8] line-through">
+                  {formatCurrency(offer.original_price)}
+                </span>
+              )}
             </div>
-            <span className="inline-flex items-center gap-1 text-[11px] text-[#94A3B8]">
+          ) : (
+            <p className="text-[13px] font-semibold text-[#6366F1]">Consultá condiciones</p>
+          )}
+
+          {/* Distance + time since published */}
+          <div className="flex items-center justify-between pt-0.5">
+            <span className="flex items-center gap-1 text-[11px] text-[#94A3B8]">
               <MapPin className="h-3 w-3" />
-              {formatDistance(km)}
+              {metersToBlocks(offer.distance_meters)}
+            </span>
+            <span
+              className={cn(
+                'flex items-center gap-1.5 text-[10px]',
+                isRecent ? 'font-semibold text-emerald-600' : 'text-[#94A3B8]'
+              )}
+            >
+              {isRecent && <LiveDot />}
+              {publishedLabel}
             </span>
           </div>
         </div>

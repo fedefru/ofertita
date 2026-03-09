@@ -1,9 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef } from 'react'
-import { Loader2, SearchX } from 'lucide-react'
+import { Loader2, AlertCircle, Store, MapPin } from 'lucide-react'
 import { OfferCard } from './OfferCard'
-import { OfferCardSkeleton } from './OfferCardSkeleton'
+import { OfferCardSkeleton, OfferCardSkeletonFeatured } from './OfferCardSkeleton'
 import type { NearbyOffer } from '@/types/offer.types'
 
 interface OfferGridProps {
@@ -18,9 +19,9 @@ interface OfferGridProps {
 }
 
 /**
- * Bento grid: every 3rd card (index % 3 === 0) is "featured" —
- * takes col-span-2 and renders in horizontal layout (image left / content right).
- * Pattern per row: [wide][normal] / [normal][normal][wide]...
+ * Bento grid: every 3rd card (index % 3 === 0) spans 2 columns
+ * and renders in the horizontal featured layout.
+ * Pattern: [wide][normal] / [normal][normal][wide] / ...
  */
 export function OfferGrid({
   offers,
@@ -37,68 +38,92 @@ export function OfferGrid({
   useEffect(() => {
     const el = loadMoreRef.current
     if (!el || !hasMore) return
-
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isLoadingMore) onLoadMore()
-      },
+      (entries) => { if (entries[0].isIntersecting && !isLoadingMore) onLoadMore() },
       { rootMargin: '200px' }
     )
-
     observer.observe(el)
     return () => observer.disconnect()
   }, [hasMore, isLoadingMore, onLoadMore])
 
-  // ─── Loading state ────────────────────────────────────────────────────────────
+  // ── Loading ──────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className={i % 3 === 0 ? 'sm:col-span-2' : ''}>
-            <OfferCardSkeleton />
-          </div>
-        ))}
+        {Array.from({ length: 6 }).map((_, i) =>
+          i % 3 === 0 ? (
+            <div key={i} className="sm:col-span-2">
+              <OfferCardSkeletonFeatured />
+            </div>
+          ) : (
+            <OfferCardSkeleton key={i} />
+          )
+        )}
       </div>
     )
   }
 
-  // ─── Error state ──────────────────────────────────────────────────────────────
+  // ── Error ────────────────────────────────────────────────────────────────────
   if (error) {
     return (
       <div
         className="flex flex-col items-center gap-3 rounded-[20px] bg-white px-6 py-16 text-center"
-        style={{ boxShadow: '0 2px 16px rgba(99,102,241,0.08), 0 1px 4px rgba(15,23,42,0.05)' }}
+        style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
       >
-        <span className="text-4xl">⚠️</span>
-        <p className="text-sm text-[#475569]">{error}</p>
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
+          <AlertCircle className="h-6 w-6 text-red-400" />
+        </div>
+        <p className="text-[14px] text-[#475569]">{error}</p>
       </div>
     )
   }
 
-  // ─── Empty state ──────────────────────────────────────────────────────────────
+  // ── Empty state ──────────────────────────────────────────────────────────────
   if (offers.length === 0) {
     return (
       <div
-        className="flex flex-col items-center gap-4 rounded-[20px] bg-white px-6 py-20 text-center"
-        style={{ boxShadow: '0 2px 16px rgba(99,102,241,0.08), 0 1px 4px rgba(15,23,42,0.05)' }}
+        className="flex flex-col items-center gap-5 rounded-[24px] bg-white px-8 py-20 text-center"
+        style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
       >
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#6366F1]/8">
-          <SearchX className="h-7 w-7 text-[#6366F1]" />
+        {/* Illustration */}
+        <div className="relative">
+          <div
+            className="flex h-20 w-20 items-center justify-center rounded-[20px]"
+            style={{ background: 'rgba(249,115,22,0.08)' }}
+          >
+            <MapPin className="h-9 w-9 text-[#F97316]" />
+          </div>
+          {/* Sleeping dot */}
+          <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#F8FAFC] border border-[#E5E7EB]">
+            <span className="text-[14px] font-bold text-[#94A3B8]">z</span>
+          </div>
         </div>
+
         <div>
-          <h3 className="text-base font-semibold text-[#0F172A]">Sin ofertas en esta zona</h3>
-          <p className="mt-1 max-w-sm text-sm text-[#94A3B8]">
-            No hay ofertas activas cerca de ti en este momento. Prueba aumentando el radio de
-            búsqueda.
+          <h3 className="text-[18px] font-black text-[#1F2937]">
+            Tus vecinos están tranquilos hoy
+          </h3>
+          <p className="mt-2 max-w-xs text-[14px] leading-relaxed text-[#6B7280]">
+            No hay ofertas activas cerca tuyo en este momento. ¿Tenés un comercio amigo? Contale
+            que puede publicar gratis en Ofertita.
           </p>
         </div>
+
+        <Link
+          href="/login?redirectTo=/onboarding"
+          className="flex items-center gap-2 rounded-[14px] bg-[#F97316] px-6 py-3 text-[14px] font-bold text-white transition-all hover:bg-[#EA580C]"
+          style={{ boxShadow: '0 4px 16px rgba(249,115,22,0.32)' }}
+        >
+          <Store className="h-4 w-4" />
+          Registrar un comercio
+        </Link>
       </div>
     )
   }
 
-  // ─── Bento grid ───────────────────────────────────────────────────────────────
+  // ── Grid ─────────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {offers.map((offer, index) => {
           const isFeatured = index % 3 === 0
@@ -120,13 +145,13 @@ export function OfferGrid({
 
       {isLoadingMore && (
         <div className="flex justify-center py-6">
-          <Loader2 className="h-5 w-5 animate-spin text-[#6366F1]/50" />
+          <Loader2 className="h-5 w-5 animate-spin text-[#F97316]/50" />
         </div>
       )}
 
       {!hasMore && offers.length > 0 && (
-        <p className="py-4 text-center text-xs text-[#94A3B8]">
-          Has visto todas las ofertas disponibles
+        <p className="py-4 text-center text-[12px] text-[#94A3B8]">
+          Eso es todo por ahora — volvé más tarde para nuevas ofertas
         </p>
       )}
     </div>

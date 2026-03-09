@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { List, Map, LocateFixed } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { OfferGrid } from '@/components/offers/OfferGrid'
-import { OfferFilters } from '@/components/offers/OfferFilters'
+import { OfferFilters, type QuickFilter } from '@/components/offers/OfferFilters'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useNearbyOffers } from '@/hooks/useNearbyOffers'
 import { useSavedOffers } from '@/hooks/useSavedOffers'
@@ -16,29 +16,26 @@ import type { Category } from '@/types/business.types'
 // Dynamic import — Leaflet cannot run on server
 const MapView = dynamic(
   () => import('@/components/map/MapView').then((m) => m.MapView),
-  { ssr: false, loading: () => <div className="h-full w-full animate-pulse bg-muted rounded-xl" /> }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full w-full animate-pulse rounded-[20px] bg-[#E2E8F0]" />
+    ),
+  }
 )
-
-// Categories are fetched server-side, but for now we pass them via a client fetch
-import { useEffect } from 'react'
 
 export default function ExplorePage() {
   const { user } = useAuth()
   const [view, setView] = useState<'list' | 'map'>('list')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [radius, setRadius] = useState(DEFAULT_RADIUS)
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
   const [categories, setCategories] = useState<Category[]>([])
 
-  const { coordinates, isLoading: geoLoading, isPermissionDenied, refresh: refreshGeo } = useGeolocation()
+  const { coordinates, isLoading: geoLoading, isPermissionDenied, refresh: refreshGeo } =
+    useGeolocation()
 
-  const {
-    offers,
-    isLoading,
-    isLoadingMore,
-    hasMore,
-    error,
-    loadMore,
-  } = useNearbyOffers({
+  const { offers, isLoading, isLoadingMore, hasMore, error, loadMore } = useNearbyOffers({
     coordinates,
     radiusMeters: radius,
     categorySlug: selectedCategory,
@@ -56,69 +53,118 @@ export default function ExplorePage() {
       .catch(() => {})
   }, [])
 
+  // Client-side quick filters (server already handles category + radius)
+  const filteredOffers = useMemo(() => {
+    if (quickFilter === 'all') return offers
+
+    const now = new Date()
+
+    if (quickFilter === 'vence-hoy') {
+      return offers.filter((o) => {
+        const end = new Date(o.end_date)
+        return end.toDateString() === now.toDateString()
+      })
+    }
+
+    if (quickFilter === 'reciente') {
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
+      return offers.filter((o) => new Date(o.start_date) >= oneHourAgo)
+    }
+
+    return offers
+  }, [offers, quickFilter])
+
+  const offerCount = filteredOffers.length
+
   return (
-    <div className="container py-4 space-y-4">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-3">
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <div className="container space-y-5 py-5">
+        {/* ── Header ──────────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-[1.25rem] font-black tracking-tight text-[#1F2937]">
+              La vidriera del barrio
+            </h1>
+            {!isLoading && !geoLoading && (
+              <p className="mt-0.5 text-[13px] text-[#9CA3AF]">
+                {offerCount > 0
+                  ? `${offerCount} oferta${offerCount !== 1 ? 's' : ''} activa${offerCount !== 1 ? 's' : ''} cerca tuyo`
+                  : 'Buscando ofertas cerca tuyo…'}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Geo recovery */}
+            {isPermissionDenied && (
+              <Button variant="outline" size="sm" onClick={refreshGeo} className="rounded-xl">
+                <LocateFixed className="mr-1.5 h-4 w-4" />
+                Usar ubicación
+              </Button>
+            )}
+
+            {/* List / Map toggle */}
+            <div className="flex overflow-hidden rounded-[12px] border border-[#E5E7EB] bg-white">
+              <button
+                onClick={() => setView('list')}
+                className={`flex h-9 w-9 items-center justify-center transition-colors ${
+                  view === 'list'
+                    ? 'bg-[#F97316] text-white'
+                    : 'text-[#9CA3AF] hover:text-[#6B7280]'
+                }`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setView('map')}
+                className={`flex h-9 w-9 items-center justify-center transition-colors ${
+                  view === 'map'
+                    ? 'bg-[#F97316] text-white'
+                    : 'text-[#9CA3AF] hover:text-[#6B7280]'
+                }`}
+              >
+                <Map className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Filters ─────────────────────────────────────────────────── */}
         <OfferFilters
           categories={categories}
           selectedCategory={selectedCategory}
           selectedRadius={radius}
-          onCategoryChange={setSelectedCategory}
+          quickFilter={quickFilter}
+          onCategoryChange={(cat) => {
+            setSelectedCategory(cat)
+            setQuickFilter('all')
+          }}
           onRadiusChange={setRadius}
+          onQuickFilterChange={setQuickFilter}
         />
 
-        <div className="ml-auto flex items-center gap-2">
-          {isPermissionDenied && (
-            <Button variant="outline" size="sm" onClick={refreshGeo}>
-              <LocateFixed className="mr-1.5 h-4 w-4" />
-              Usar ubicación
-            </Button>
-          )}
-
-          {/* View toggle */}
-          <div className="flex rounded-md border overflow-hidden">
-            <Button
-              variant={view === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              className="rounded-none"
-              onClick={() => setView('list')}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={view === 'map' ? 'default' : 'ghost'}
-              size="sm"
-              className="rounded-none"
-              onClick={() => setView('map')}
-            >
-              <Map className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      {view === 'list' ? (
-        <OfferGrid
-          offers={offers}
-          isLoading={isLoading || geoLoading}
-          isLoadingMore={isLoadingMore}
-          hasMore={hasMore}
-          savedIds={savedIds}
-          onToggleSave={toggleSave}
-          onLoadMore={loadMore}
-          error={error}
-        />
-      ) : (
-        <div className="h-[calc(100vh-12rem)]">
-          <MapView
-            offers={offers}
-            userLocation={coordinates}
-            center={coordinates ?? { lat: 40.4168, lng: -3.7038 }}
+        {/* ── Content ─────────────────────────────────────────────────── */}
+        {view === 'list' ? (
+          <OfferGrid
+            offers={filteredOffers}
+            isLoading={isLoading || geoLoading}
+            isLoadingMore={isLoadingMore}
+            hasMore={hasMore && quickFilter === 'all'}
+            savedIds={savedIds}
+            onToggleSave={toggleSave}
+            onLoadMore={loadMore}
+            error={error}
           />
-        </div>
-      )}
+        ) : (
+          <div className="h-[calc(100vh-14rem)] overflow-hidden rounded-[20px]">
+            <MapView
+              offers={filteredOffers}
+              userLocation={coordinates}
+              center={coordinates ?? { lat: -34.705, lng: -58.271 }}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

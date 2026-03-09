@@ -21,3 +21,13 @@ export function formatDistance(km: number): string {
 export function metersToKm(meters: number): number {
   return meters / 1000
 }
+
+// 1 cuadra ≈ 100 m (Argentine city block)
+export function metersToBlocks(meters: number): string {
+  if (meters < 120) return 'A menos de 1 cuadra'
+  if (meters < 1100) {
+    const blocks = Math.round(meters / 100)
+    return `A ${blocks} cuadra${blocks !== 1 ? 's' : ''} de vos`
+  }
+  return `A ${(meters / 1000).toFixed(1)} km de vos`
+}

@@ -1,85 +1,147 @@
 'use client'
 
-import { SlidersHorizontal } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { RADIUS_OPTIONS } from '@/lib/constants'
+import { MapPin, Clock, Zap } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { Category } from '@/types/business.types'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type QuickFilter = 'all' | 'vence-hoy' | 'reciente'
 
 interface OfferFiltersProps {
   categories: Category[]
   selectedCategory: string | null
   selectedRadius: number
+  quickFilter: QuickFilter
   onCategoryChange: (slug: string | null) => void
   onRadiusChange: (meters: number) => void
+  onQuickFilterChange: (filter: QuickFilter) => void
 }
 
-/**
- * Filter toolbar con superficie propia.
- * Fondo blanco, sombra índigo sutil, selects de borde muy suave.
- */
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const DISTANCE_OPTS = [
+  { label: '5 cuadras', value: 500 },
+  { label: '10 cuadras', value: 1000 },
+  { label: 'Todo el barrio', value: 5000 },
+  { label: 'Sin límite', value: 10000 },
+] as const
+
+// ─── Chip ─────────────────────────────────────────────────────────────────────
+
+function Chip({
+  active,
+  onClick,
+  activeClass,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  activeClass?: string
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[12px] font-semibold transition-all',
+        active
+          ? activeClass ?? 'border-[#F97316] bg-[#F97316] text-white'
+          : 'border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#F97316]/40 hover:text-[#F97316]'
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+// ─── Filter bar ───────────────────────────────────────────────────────────────
+
 export function OfferFilters({
   categories,
   selectedCategory,
   selectedRadius,
+  quickFilter,
   onCategoryChange,
   onRadiusChange,
+  onQuickFilterChange,
 }: OfferFiltersProps) {
+  const toggleQuick = (f: QuickFilter) =>
+    onQuickFilterChange(quickFilter === f ? 'all' : f)
+
   return (
-    <div
-      className="flex flex-wrap items-center gap-2 rounded-[16px] bg-white px-3 py-2"
-      style={{ boxShadow: '0 2px 12px rgba(99,102,241,0.07), 0 1px 3px rgba(15,23,42,0.05)' }}
-    >
-      {/* Icon */}
-      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#6366F1]/8">
-        <SlidersHorizontal className="h-3.5 w-3.5 text-[#6366F1]" />
+    <div className="space-y-2.5">
+      {/* ── Row 1: Categories ────────────────────────────────── */}
+      <div
+        className="flex gap-2 overflow-x-auto pb-0.5"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        <Chip active={selectedCategory === null} onClick={() => onCategoryChange(null)}>
+          Todas
+        </Chip>
+
+        {categories.map((cat) => (
+          <Chip
+            key={cat.id}
+            active={selectedCategory === cat.slug}
+            onClick={() => onCategoryChange(cat.slug)}
+            activeClass={
+              cat.color
+                ? undefined
+                : 'border-[#6366F1] bg-[#6366F1] text-white'
+            }
+          >
+            {cat.name}
+          </Chip>
+        ))}
       </div>
 
-      {/* Category filter */}
-      <Select
-        value={selectedCategory ?? 'all'}
-        onValueChange={(v) => onCategoryChange(v === 'all' ? null : v)}
+      {/* ── Row 2: Distance + quick filters ─────────────────── */}
+      <div
+        className="flex gap-2 overflow-x-auto pb-0.5"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <SelectTrigger
-          className="h-8 w-44 rounded-xl border-[rgba(15,23,42,0.08)] bg-[#F8FAFC] text-xs text-[#0F172A] focus:ring-1 focus:ring-[#6366F1]/30"
-        >
-          <SelectValue placeholder="Categoría" />
-        </SelectTrigger>
-        <SelectContent className="rounded-xl border-[rgba(15,23,42,0.08)]">
-          <SelectItem value="all" className="text-xs">
-            Todas las categorías
-          </SelectItem>
-          {categories.map((cat) => (
-            <SelectItem key={cat.id} value={cat.slug} className="text-xs">
-              {cat.icon} {cat.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        {DISTANCE_OPTS.map((opt) => (
+          <Chip
+            key={opt.value}
+            active={selectedRadius === opt.value}
+            onClick={() => onRadiusChange(opt.value)}
+          >
+            <MapPin className="h-3 w-3" />
+            {opt.label}
+          </Chip>
+        ))}
 
-      {/* Radius filter */}
-      <Select
-        value={selectedRadius.toString()}
-        onValueChange={(v) => onRadiusChange(Number(v))}
-      >
-        <SelectTrigger
-          className="h-8 w-32 rounded-xl border-[rgba(15,23,42,0.08)] bg-[#F8FAFC] text-xs text-[#0F172A] focus:ring-1 focus:ring-[#6366F1]/30"
+        {/* Divider */}
+        <div className="mx-0.5 flex-shrink-0 self-center">
+          <div className="h-5 w-px bg-[#E5E7EB]" />
+        </div>
+
+        {/* Vence hoy */}
+        <Chip
+          active={quickFilter === 'vence-hoy'}
+          onClick={() => toggleQuick('vence-hoy')}
+          activeClass="border-amber-500 bg-amber-500 text-white"
         >
-          <SelectValue placeholder="Radio" />
-        </SelectTrigger>
-        <SelectContent className="rounded-xl border-[rgba(15,23,42,0.08)]">
-          {RADIUS_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value.toString()} className="text-xs">
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          <Clock className="h-3 w-3" />
+          Vence hoy
+        </Chip>
+
+        {/* Publicado hace menos de 1h */}
+        <Chip
+          active={quickFilter === 'reciente'}
+          onClick={() => toggleQuick('reciente')}
+          activeClass="border-emerald-500 bg-emerald-500 text-white"
+        >
+          <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          </span>
+          <Zap className="h-3 w-3" />
+          Publicado hace &lt;1h
+        </Chip>
+      </div>
     </div>
   )
 }

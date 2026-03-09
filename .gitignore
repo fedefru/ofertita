@@ -46,4 +46,5 @@ supabase/signing_keys.json
 .claude/
 .agents/
 .interface-design/
+CLAUDE.md
 

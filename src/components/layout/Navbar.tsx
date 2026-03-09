@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { LayoutDashboard, LogOut, Bookmark, Store } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -16,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
@@ -26,22 +24,9 @@ const navLinks = [
 ]
 
 export function Navbar() {
-  const { user, profile, isOwner, isLoading } = useAuth()
+  const { user, profile, isOwner, isLoading, businessSlug } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const supabase = createClient()
-  const [businessSlug, setBusinessSlug] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!isOwner || !user) return
-    supabase
-      .from('businesses')
-      .select('slug')
-      .eq('owner_id', user.id)
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => setBusinessSlug(data?.slug ?? null))
-  }, [isOwner, user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSignOut() {
     console.log('Signing out initiated via server route...')
@@ -103,13 +88,13 @@ export function Navbar() {
                 className={cn(
                   'relative px-3 py-1.5 text-sm rounded-md transition-colors',
                   isActive
-                    ? 'text-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                    ? 'text-[#EA580C] font-semibold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-[#FFF7ED]'
                 )}
               >
                 {label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-primary" />
+                  <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-[#F97316]" />
                 )}
               </Link>
             )
@@ -118,8 +103,8 @@ export function Navbar() {
 
         {/* Right side */}
         <div className="ml-auto flex items-center gap-2">
-          {!isOwner && (
-            <Button size="sm" asChild>
+          {!isLoading && user && !isOwner && !businessSlug && (
+            <Button size="sm" asChild className="bg-[#F97316] hover:bg-[#EA580C] text-white">
               <Link href="/onboarding">Registrar comercio</Link>
             </Button>
           )}
@@ -131,14 +116,14 @@ export function Navbar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.display_name ?? ''} />
+                    <AvatarImage src={profile?.avatar_url ?? user?.user_metadata?.avatar_url ?? undefined} alt={profile?.display_name ?? ''} />
                     <AvatarFallback className="bg-accent text-accent-foreground font-semibold text-xs">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 z-[1000]">
                 <DropdownMenuLabel>
                   <p className="font-semibold">{profile?.display_name ?? 'Usuario'}</p>
                   <p className="text-xs text-muted-foreground font-normal">{user?.email}</p>
@@ -153,7 +138,7 @@ export function Navbar() {
                     Guardados
                   </Link>
                 </DropdownMenuItem>
-                {isOwner && businessSlug && (
+                {businessSlug && (
                   <DropdownMenuItem asChild>
                     <Link href={`/businesses/${businessSlug}`}>
                       <Store className="mr-2 h-4 w-4" />

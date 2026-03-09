@@ -1,7 +1,8 @@
 import { formatDistanceToNow, isPast, differenceInHours } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined) return ''
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
@@ -29,6 +30,22 @@ export function formatTimeLeft(endDate: string | Date): {
   return { label, isUrgent, isExpired: false }
 }
 
-export function formatDiscountPct(pct: number): string {
+export function formatDiscountPct(pct: number | null | undefined): string {
+  if (!pct) return ''
   return `-${Math.round(pct)}%`
+}
+
+/** How long ago the offer was published. Uses start_date as proxy. */
+export function formatTimeAgo(dateStr: string): { label: string; isRecent: boolean } {
+  const diffMs = Date.now() - new Date(dateStr).getTime()
+  const diffMin = Math.floor(diffMs / 60_000)
+
+  if (diffMin < 1) return { label: 'Ahora mismo', isRecent: true }
+  if (diffMin < 60) return { label: `Hace ${diffMin} min`, isRecent: true }
+
+  const diffH = Math.floor(diffMin / 60)
+  if (diffH < 24) return { label: `Hace ${diffH} h`, isRecent: false }
+
+  const diffD = Math.floor(diffH / 24)
+  return { label: `Hace ${diffD} ${diffD === 1 ? 'día' : 'días'}`, isRecent: false }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { businessSchema, type BusinessFormValues } from '@/lib/validations'
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ImageUpload } from '@/components/shared/ImageUpload'
 import { STORAGE_BUCKETS } from '@/lib/constants'
 import type { Category } from '@/types/business.types'
+import { MapPin, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 interface BusinessFormProps {
   categories: Category[]
@@ -20,10 +21,13 @@ interface BusinessFormProps {
   isLoading?: boolean
 }
 
+type GeoStatus = 'idle' | 'searching' | 'found' | 'error'
+
 export function BusinessForm({ categories, defaultValues, onSubmit, isLoading }: BusinessFormProps) {
   const [logoUrl, setLogoUrl] = useState<string | null>(defaultValues?.logo_url ?? null)
   const [coverUrl, setCoverUrl] = useState<string | null>(defaultValues?.cover_url ?? null)
-  const [isGeocoding, setIsGeocoding] = useState(false)
+  const [geoStatus, setGeoStatus] = useState<GeoStatus>(defaultValues?.lat ? 'found' : 'idle')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const {
     register,
@@ -41,35 +45,48 @@ export function BusinessForm({ categories, defaultValues, onSubmit, isLoading }:
       city: defaultValues?.city ?? '',
       phone: defaultValues?.phone ?? '',
       website: defaultValues?.website ?? '',
-      lat: defaultValues?.lat ?? 40.4168,
-      lng: defaultValues?.lng ?? -3.7038,
+      lat: defaultValues?.lat ?? 0,
+      lng: defaultValues?.lng ?? 0,
     },
   })
 
   const address = watch('address')
   const city = watch('city')
 
-  async function geocodeAddress() {
-    const query = `${address}, ${city}`
-    if (!query.trim()) return
-
-    setIsGeocoding(true)
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
-        { headers: { 'Accept-Language': 'es' } }
-      )
-      const data = await res.json()
-      if (data.length > 0) {
-        setValue('lat', parseFloat(data[0].lat))
-        setValue('lng', parseFloat(data[0].lon))
-      }
-    } catch {
-      // Silently fail — user can manually adjust
-    } finally {
-      setIsGeocoding(false)
+  useEffect(() => {
+    // Only geocode when both fields have enough content
+    if (address.length < 5 || city.length < 2) {
+      setGeoStatus('idle')
+      return
     }
-  }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    debounceRef.current = setTimeout(async () => {
+      setGeoStatus('searching')
+      try {
+        const query = `${address}, ${city}, Argentina`
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=ar`,
+          { headers: { 'Accept-Language': 'es' } }
+        )
+        const data = await res.json()
+        if (data.length > 0) {
+          setValue('lat', parseFloat(data[0].lat))
+          setValue('lng', parseFloat(data[0].lon))
+          setGeoStatus('found')
+        } else {
+          setGeoStatus('error')
+        }
+      } catch {
+        setGeoStatus('error')
+      }
+    }, 700)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [address, city]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleFormSubmit(data: BusinessFormValues) {
     await onSubmit({
@@ -123,40 +140,50 @@ export function BusinessForm({ categories, defaultValues, onSubmit, isLoading }:
       </div>
 
       {/* Address + City */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="address">Dirección *</Label>
-          <Input id="address" {...register('address')} placeholder="Calle Mayor 10" />
-          {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="address">Dirección *</Label>
+            <Input id="address" {...register('address')} placeholder="Calle Mayor 10" />
+            {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="city">Ciudad *</Label>
+            <Input id="city" {...register('city')} placeholder="Buenos Aires" />
+            {errors.city && <p className="text-sm text-destructive">{errors.city.message}</p>}
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="city">Ciudad *</Label>
-          <Input id="city" {...register('city')} placeholder="Madrid" />
-          {errors.city && <p className="text-sm text-destructive">{errors.city.message}</p>}
-        </div>
+
+        {/* Geo status indicator */}
+        {geoStatus === 'searching' && (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Buscando ubicación…
+          </p>
+        )}
+        {geoStatus === 'found' && (
+          <p className="flex items-center gap-1.5 text-xs text-emerald-600">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Ubicación encontrada
+          </p>
+        )}
+        {geoStatus === 'error' && (
+          <p className="flex items-center gap-1.5 text-xs text-destructive">
+            <AlertCircle className="h-3.5 w-3.5" />
+            No se encontró la dirección. Intentá ser más específico.
+          </p>
+        )}
+        {geoStatus === 'idle' && address.length >= 5 && city.length < 2 && (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5" />
+            Completá la ciudad para ubicar el comercio
+          </p>
+        )}
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={geocodeAddress}
-        disabled={isGeocoding || !address || !city}
-      >
-        {isGeocoding ? 'Buscando...' : 'Obtener coordenadas de la dirección'}
-      </Button>
-
-      {/* Lat/Lng (hidden inputs, shown for manual override) */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="lat">Latitud</Label>
-          <Input id="lat" type="number" step="any" {...register('lat', { valueAsNumber: true })} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="lng">Longitud</Label>
-          <Input id="lng" type="number" step="any" {...register('lng', { valueAsNumber: true })} />
-        </div>
-      </div>
+      {/* Hidden lat/lng — managed by geocoder */}
+      <input type="hidden" {...register('lat', { valueAsNumber: true })} />
+      <input type="hidden" {...register('lng', { valueAsNumber: true })} />
 
       {/* Phone + Website */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
