@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BusinessForm } from '@/components/business/BusinessForm'
 import { createClient } from '@/lib/supabase/client'
@@ -10,7 +10,7 @@ import type { Category } from '@/types/business.types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const message = searchParams.get('message')
@@ -124,5 +124,13 @@ export default function OnboardingPage() {
         isLoading={isLoading}
       />
     </div>
+  )
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense>
+      <OnboardingContent />
+    </Suspense>
   )
 }
