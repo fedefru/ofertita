@@ -4,7 +4,8 @@ import type { NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
   const { origin, searchParams } = new URL(request.url)
-  const redirectTo = searchParams.get('redirectTo') ?? '/explore'
+  const rawRedirect = searchParams.get('redirectTo') ?? '/explore'
+  const redirectTo = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/explore'
 
   const cookiesToSet: Array<{ name: string; value: string; options: CookieOptions }> = []
 

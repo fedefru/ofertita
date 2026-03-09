@@ -28,6 +28,13 @@ export default function EditOfferPage() {
         supabase.from('businesses').select('*').eq('owner_id', user.id),
       ])
 
+      // IDOR check: verify the offer belongs to one of the user's businesses
+      const ownedIds = new Set((bizData ?? []).map((b) => b.id))
+      if (!offerData || !ownedIds.has(offerData.business_id)) {
+        router.replace('/dashboard/offers')
+        return
+      }
+
       setOffer(offerData)
       setBusinesses(bizData ?? [])
     }

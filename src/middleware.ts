@@ -9,6 +9,9 @@ const RATE_LIMITS: Record<string, { requests: number; windowMs: number }> = {
   '/api/offers/nearby': { requests: 30, windowMs: 60_000 },  // 30 req/min
   '/api/upload':        { requests: 10, windowMs: 60_000 },  // 10 req/min
   '/api/auth/login':    { requests: 5,  windowMs: 60_000 },  // 5 req/min
+  '/api/auth/signout':  { requests: 10, windowMs: 60_000 },  // 10 req/min
+  '/api/me/':           { requests: 60, windowMs: 60_000 },  // 60 req/min (profile + business)
+  '/api/categories':    { requests: 30, windowMs: 60_000 },  // 30 req/min
 }
 
 function isRateLimited(ip: string, pathname: string): boolean {

@@ -4,6 +4,8 @@
 
 ## Chore:
 
+- fix: security hardening — CSP, rate limits, IDOR, open redirect, MIME validation
+
 - fix: corregir lectura de cookies httpOnly en el cliente de Supabase y errores de RLS en base de datos.
 
 - fix: migrar obtención de datos de /api/me/profile y /api/me/business al lado del servidor para acceso a cookies.

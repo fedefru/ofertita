@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const isDev = process.env.NODE_ENV === 'development'
+
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -9,7 +11,7 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval required by Next.js dev; tighten in prod if possible
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org",
       "connect-src 'self' https://*.supabase.co https://nominatim.openstreetmap.org",
