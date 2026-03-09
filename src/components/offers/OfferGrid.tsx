@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { Loader2, AlertCircle, Store, MapPin } from 'lucide-react'
 import { OfferCard } from './OfferCard'
-import { OfferCardSkeleton, OfferCardSkeletonFeatured } from './OfferCardSkeleton'
+import { OfferCardSkeleton } from './OfferCardSkeleton'
 import type { NearbyOffer } from '@/types/offer.types'
 
 interface OfferGridProps {
@@ -49,16 +49,10 @@ export function OfferGrid({
   // ── Loading ──────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {Array.from({ length: 6 }).map((_, i) =>
-          i % 3 === 0 ? (
-            <div key={i} className="sm:col-span-2">
-              <OfferCardSkeletonFeatured />
-            </div>
-          ) : (
-            <OfferCardSkeleton key={i} />
-          )
-        )}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <OfferCardSkeleton key={i} />
+        ))}
       </div>
     )
   }
@@ -124,20 +118,15 @@ export function OfferGrid({
   // ── Grid ─────────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {offers.map((offer, index) => {
-          const isFeatured = index % 3 === 0
-          return (
-            <div key={offer.id} className={isFeatured ? 'sm:col-span-2' : ''}>
-              <OfferCard
-                offer={offer}
-                isSaved={savedIds.has(offer.id)}
-                onToggleSave={onToggleSave}
-                featured={isFeatured}
-              />
-            </div>
-          )
-        })}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {offers.map((offer) => (
+          <OfferCard
+            key={offer.id}
+            offer={offer}
+            isSaved={savedIds.has(offer.id)}
+            onToggleSave={onToggleSave}
+          />
+        ))}
       </div>
 
       {/* Infinite scroll sentinel */}

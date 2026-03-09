@@ -4,11 +4,25 @@
 
 ## Chore:
 
-  - Remove debug console.logs from Navbar signOut
-  - Add global not-found and error pages
-  - Add robots.txt (block dashboard/api, allow offers/businesses)
-  - Add is_blocked to profiles + middleware redirect to /suspendida
-  - Add /suspendida page for blocked users
+- fix: corregir lectura de cookies httpOnly en el cliente de Supabase y errores de RLS en base de datos.
+
+- fix: migrar obtención de datos de /api/me/profile y /api/me/business al lado del servidor para acceso a cookies.
+
+- fix: actualizar la Navbar para que "Mi panel" utilice businessSlug en lugar de isOwner.
+
+- fix: implementar fallback a la tabla businesses en el middleware cuando profiles.role esté desincronizado.
+
+- feat: añadir BusinessOwnerBar a la página de negocio con botones de edición, nueva oferta y panel.
+
+- feat: añadir páginas globales de error y 404 (not-found).
+
+- feat: implementar campo is_blocked en perfiles y redirección vía middleware a /suspendida.
+
+- feat: crear página /suspendida para usuarios con acceso restringido.
+
+- chore: eliminar console.log de depuración en el signOut de la Navbar.
+
+- chore: añadir archivo robots.txt (restricción de /dashboard y /api; acceso a ofertas y negocios).
 
 
 ## [0.2.0] - 2026-03-09

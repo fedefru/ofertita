@@ -24,16 +24,13 @@ export function useAuth(): AuthState {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // onAuthStateChange fires INITIAL_SESSION immediately — no need for getSession()
+    // onAuthStateChange fires INITIAL_SESSION immediately with the current session
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        await Promise.all([
-          fetchProfile(session.user.id),
-          fetchBusinessSlug(session.user.id),
-        ])
+        await Promise.all([fetchProfile(), fetchBusinessSlug()])
       } else {
         setProfile(null)
         setBusinessSlug(null)
@@ -44,25 +41,32 @@ export function useAuth(): AuthState {
     return () => subscription.unsubscribe()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function fetchProfile(userId: string) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    setProfile(data)
+  async function fetchProfile() {
+    try {
+      const res = await fetch('/api/me/profile')
+      if (res.ok) {
+        const json = await res.json()
+        setProfile(json.profile ?? null)
+      } else {
+        setProfile(null)
+      }
+    } catch {
+      setProfile(null)
+    }
   }
 
-  async function fetchBusinessSlug(userId: string) {
-    const { data, error } = await supabase
-      .from('businesses')
-      .select('slug')
-      .eq('owner_id', userId)
-      .limit(1)
-      .maybeSingle()
-
-    setBusinessSlug(data?.slug ?? null)
+  async function fetchBusinessSlug() {
+    try {
+      const res = await fetch('/api/me/business')
+      if (res.ok) {
+        const json = await res.json()
+        setBusinessSlug(json.slug ?? null)
+      } else {
+        setBusinessSlug(null)
+      }
+    } catch {
+      setBusinessSlug(null)
+    }
   }
 
   const role = profile?.role ?? null

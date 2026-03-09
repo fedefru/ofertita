@@ -198,7 +198,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
         onMouseLeave={(e) => { e.currentTarget.style.boxShadow = cardShadow }}
       >
         {/* Image / placeholder */}
-        <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="relative aspect-video overflow-hidden">
           {offer.image_url ? (
             <>
               <Image
@@ -215,7 +215,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
               className="flex h-full w-full items-center justify-center"
               style={{ background: placeholderGradient }}
             >
-              <Icon className="h-14 w-14 text-white/20 transition-transform duration-500 group-hover:scale-110" />
+              <Icon className="h-10 w-10 text-white/20 transition-transform duration-500 group-hover:scale-110" />
             </div>
           )}
 
@@ -244,7 +244,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
         </div>
 
         {/* Content */}
-        <div className="space-y-2 p-4">
+        <div className="space-y-1.5 p-3">
           {/* Category + time until expiry */}
           <div className="flex items-center justify-between gap-2">
             <span
@@ -270,7 +270,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
           {/* Price */}
           {hasPrice ? (
             <div className="flex items-baseline gap-1.5">
-              <span className="text-[18px] font-black text-[#F97316]">
+              <span className="text-[16px] font-black text-[#F97316]">
                 {formatCurrency(offer.offer_price)}
               </span>
               {hasOriginal && hasDiscount && (

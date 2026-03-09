@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getBusinessBySlug } from '@/lib/supabase/queries/businesses'
 import { BusinessHeader } from '@/components/business/BusinessHeader'
+import { BusinessOwnerBar } from '@/components/business/BusinessOwnerBar'
 import { BusinessOffersSection } from '@/components/business/BusinessOffersSection'
 import type { BusinessWithCategory } from '@/types/business.types'
 import type { NearbyOffer } from '@/types/offer.types'
@@ -54,6 +55,7 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
   return (
     <div className="container py-8 space-y-8">
       <BusinessHeader business={business as unknown as BusinessWithCategory} />
+      <BusinessOwnerBar businessSlug={business.slug} businessId={business.id} />
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">

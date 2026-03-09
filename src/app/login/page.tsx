@@ -29,7 +29,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             />
           </div>
           <p className="text-muted-foreground text-sm">
-            Descubre las mejores ofertas locales cerca de ti
+            Descubre las mejores ofertas locales cerca de vos
           </p>
         </div>
 

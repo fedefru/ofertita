@@ -119,12 +119,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/suspendida', request.url))
   }
 
-  // Dashboard requires business_owner role
+  // Dashboard requires business_owner role OR an existing business row
   if (pathname.startsWith('/dashboard')) {
-    if (!profile || profile.role !== 'business_owner') {
-      const onboardingUrl = new URL('/onboarding', request.url)
-      onboardingUrl.searchParams.set('message', 'Registra tu comercio para acceder al panel')
-      return NextResponse.redirect(onboardingUrl)
+    const isBusinessOwner = profile?.role === 'business_owner'
+    if (!isBusinessOwner) {
+      // Fallback: check if user has a business (role may be out of sync)
+      const { data: biz } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('owner_id', user.id)
+        .limit(1)
+        .maybeSingle()
+
+      if (!biz) {
+        const onboardingUrl = new URL('/onboarding', request.url)
+        onboardingUrl.searchParams.set('message', 'Registra tu comercio para acceder al panel')
+        return NextResponse.redirect(onboardingUrl)
+      }
     }
   }
 

@@ -11,10 +11,14 @@ const jakarta = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Ofertita — Ofertas locales cerca de ti',
+    default: 'Ofertita — Ofertas locales cerca de vos',
     template: '%s | Ofertita',
   },
   description: 'Descubre las mejores ofertas de los comercios locales de tu ciudad',
+  icons: {
+    icon: '/logo-min-white.png',
+    apple: '/logo-min-white.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'es_ES',

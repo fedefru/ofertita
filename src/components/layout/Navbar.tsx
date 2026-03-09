@@ -47,7 +47,7 @@ export function Navbar() {
       .slice(0, 2)
     : '?'
 
-  const allLinks = isOwner
+  const allLinks = businessSlug
     ? [...navLinks, { href: '/dashboard', label: 'Mi panel' }]
     : navLinks
 
@@ -135,7 +135,7 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                 )}
-                {isOwner && (
+                {businessSlug && (
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard">
                       <LayoutDashboard className="mr-2 h-4 w-4" />
