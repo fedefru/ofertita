@@ -68,7 +68,7 @@ export function BusinessForm({ categories, defaultValues, onSubmit, isLoading }:
         const query = `${address}, ${city}, Argentina`
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=ar`,
-          { headers: { 'Accept-Language': 'es' } }
+          { headers: { 'Accept-Language': 'es', 'User-Agent': 'Ofertita/0.2.0 (contacto@ofertita.app)' } }
         )
         const data = await res.json()
         if (data.length > 0) {

@@ -55,6 +55,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Suspended page is always accessible (avoid redirect loop)
+  if (pathname === '/suspendida') {
+    return NextResponse.next()
+  }
+
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -102,14 +107,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
+  // Fetch profile once for role + blocked checks
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, is_blocked')
+    .eq('id', user.id)
+    .single()
+
+  // Blocked users can only see /suspendida
+  if (profile?.is_blocked) {
+    return NextResponse.redirect(new URL('/suspendida', request.url))
+  }
+
   // Dashboard requires business_owner role
   if (pathname.startsWith('/dashboard')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
     if (!profile || profile.role !== 'business_owner') {
       const onboardingUrl = new URL('/onboarding', request.url)
       onboardingUrl.searchParams.set('message', 'Registra tu comercio para acceder al panel')

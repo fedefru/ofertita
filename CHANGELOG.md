@@ -1,5 +1,16 @@
 # ofertita
 
+## [0.2.1] - 2026-03-09
+
+## Chore:
+
+  - Remove debug console.logs from Navbar signOut
+  - Add global not-found and error pages
+  - Add robots.txt (block dashboard/api, allow offers/businesses)
+  - Add is_blocked to profiles + middleware redirect to /suspendida
+  - Add /suspendida page for blocked users
+
+
 ## [0.2.0] - 2026-03-09
 
 ### Feat

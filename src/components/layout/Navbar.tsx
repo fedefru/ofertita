@@ -29,23 +29,12 @@ export function Navbar() {
   const pathname = usePathname()
 
   async function handleSignOut() {
-    console.log('Signing out initiated via server route...')
-
-    // Force redirect function
-    const forceRedirect = () => {
-      console.log('Redirecting to login...')
-      window.location.href = '/login'
-    }
-
     try {
-      await fetch('/api/auth/signout', {
-        method: 'POST',
-      })
-      console.log('Server sign out request completed')
-    } catch (error) {
-      console.error('Error during sign out:', error)
+      await fetch('/api/auth/signout', { method: 'POST' })
+    } catch {
+      // Redirect regardless
     } finally {
-      forceRedirect()
+      window.location.href = '/login'
     }
   }
 

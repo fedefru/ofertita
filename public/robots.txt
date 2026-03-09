@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /explore
+Allow: /businesses/
+Allow: /offers/
+
+Disallow: /dashboard/
+Disallow: /onboarding
+Disallow: /saved
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://ofertita.app/sitemap.xml
