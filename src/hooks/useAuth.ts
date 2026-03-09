@@ -69,7 +69,7 @@ export function useAuth(): AuthState {
     }
   }
 
-  const role = profile?.role ?? null
+  const role = (profile?.role ?? null) as 'viewer' | 'business_owner' | 'admin' | null
   const isOwner = role === 'business_owner'
 
   return { user, profile, role, isOwner, isLoading, businessSlug }

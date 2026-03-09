@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+import type { SavedOffer } from '@/types/offer.types'
 
-export async function getSavedOffersByUser(userId: string) {
+export async function getSavedOffersByUser(userId: string): Promise<SavedOffer[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -16,6 +17,7 @@ export async function getSavedOffersByUser(userId: string) {
     `)
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
+    .returns<SavedOffer[]>()
 
   if (error) throw error
   return data ?? []
@@ -28,6 +30,7 @@ export async function getSavedOfferIds(userId: string): Promise<string[]> {
     .from('saved_offers')
     .select('offer_id')
     .eq('user_id', userId)
+    .returns<{ offer_id: string }[]>()
 
   if (error) throw error
   return (data ?? []).map((r) => r.offer_id)

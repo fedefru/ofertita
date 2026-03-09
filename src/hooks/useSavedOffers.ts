@@ -2,7 +2,10 @@
 
 import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import type { Database } from '@/types/database.types'
 import { toast } from 'sonner'
+
+type SavedOfferInsert = Database['public']['Tables']['saved_offers']['Insert']
 
 interface UseSavedOffersOptions {
   userId: string
@@ -43,9 +46,10 @@ export function useSavedOffers({ userId, initialSavedIds = [] }: UseSavedOffersO
 
           if (error) throw error
         } else {
+          const row: SavedOfferInsert = { user_id: userId, offer_id: offerId }
           const { error } = await supabase
             .from('saved_offers')
-            .insert({ user_id: userId, offer_id: offerId })
+            .insert(row)
 
           if (error) throw error
           toast.success('Oferta guardada')

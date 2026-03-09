@@ -22,8 +22,8 @@ export default function BusinessPage() {
       if (!user) return
 
       const [{ data: cats }, { data: biz }] = await Promise.all([
-        supabase.from('categories').select('*').order('name'),
-        supabase.from('businesses').select('*').eq('owner_id', user.id).maybeSingle(),
+        supabase.from('categories').select('*').order('name').returns<Category[]>(),
+        supabase.from('businesses').select('*').eq('owner_id', user.id).maybeSingle<Business>(),
       ])
 
       setCategories(cats ?? [])
@@ -125,7 +125,7 @@ export default function BusinessPage() {
       <BusinessForm
         key={business?.id ?? 'new'}
         categories={categories}
-        defaultValues={business ?? undefined}
+        defaultValues={business ? { ...business, description: business.description ?? undefined, phone: business.phone ?? undefined, website: business.website ?? undefined, logo_url: business.logo_url ?? undefined, cover_url: business.cover_url ?? undefined } : undefined}
         onSubmit={handleSubmit}
         isLoading={isLoading}
       />

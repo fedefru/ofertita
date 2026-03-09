@@ -53,7 +53,7 @@ export default function NewOfferPage() {
         .select('id, city')
         .eq('id', data.business_id)
         .eq('owner_id', user.id)
-        .single()
+        .single<{ id: string; city: string }>()
 
       if (!business) throw new Error('No tienes permiso para crear ofertas en este comercio')
 

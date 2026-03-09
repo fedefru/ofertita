@@ -1,5 +1,27 @@
 import { createClient } from '@/lib/supabase/server'
-import type { NearbyOffer } from '@/types/offer.types'
+import type { NearbyOffer, Offer } from '@/types/offer.types'
+
+export type OfferWithBusiness = Offer & {
+  business: {
+    id: string
+    name: string
+    slug: string
+    description: string | null
+    address: string
+    city: string
+    phone: string | null
+    website: string | null
+    logo_url: string | null
+    cover_url: string | null
+    lat: number
+    lng: number
+    category: {
+      name: string
+      slug: string
+      color: string | null
+    }
+  } | null
+}
 
 export async function getNearbyOffers({
   lat,
@@ -22,7 +44,7 @@ export async function getNearbyOffers({
     user_lat: lat,
     user_lng: lng,
     radius_meters: radiusMeters,
-    filter_category: categorySlug ?? null,
+    filter_category: categorySlug ?? undefined,
     limit_count: limit,
     offset_count: offset,
   })
@@ -45,7 +67,7 @@ export async function getOfferById(id: string) {
       )
     `)
     .eq('id', id)
-    .single()
+    .single<OfferWithBusiness>()
 
   if (error) throw error
   return data
@@ -54,7 +76,8 @@ export async function getOfferById(id: string) {
 export async function incrementViewCount(offerId: string) {
   const supabase = await createClient()
 
-  await supabase.rpc('increment_view_count' as never, { offer_id: offerId })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).rpc('increment_view_count', { offer_id: offerId })
 }
 
 export async function getOffersByBusiness(businessId: string) {

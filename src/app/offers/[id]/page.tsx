@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: OfferPageProps): Promise<Meta
     const offer = await getOfferById(id)
     return {
       title: offer.title,
-      description: offer.description ?? `Oferta en ${(offer.business as { name: string }).name}`,
+      description: offer.description ?? (offer.business ? `Oferta en ${offer.business.name}` : 'Oferta'),
       openGraph: {
         images: offer.image_url ? [offer.image_url] : [],
       },

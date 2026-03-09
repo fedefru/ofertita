@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { formatCurrency, formatDiscountPct, formatTimeLeft } from '@/lib/formatters'
 import { DeleteOfferButton } from '@/components/offers/DeleteOfferButton'
+import type { Offer } from '@/types/offer.types'
+
+type OfferWithBusiness = Offer & { business: { name: string; slug: string } | null }
 
 export const metadata: Metadata = { title: 'Mis ofertas' }
 
@@ -20,6 +23,7 @@ export default async function OffersPage() {
     .from('businesses')
     .select('id')
     .eq('owner_id', user.id)
+    .returns<{ id: string }[]>()
 
   const businessIds = (businesses ?? []).map((b) => b.id)
 
@@ -28,6 +32,7 @@ export default async function OffersPage() {
     .select('*, business:businesses(name, slug)')
     .in('business_id', businessIds.length ? businessIds : [''])
     .order('created_at', { ascending: false })
+    .returns<OfferWithBusiness[]>()
 
   return (
     <div className="space-y-6">

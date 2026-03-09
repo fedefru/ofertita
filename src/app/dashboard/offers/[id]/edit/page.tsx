@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { OfferForm } from '@/components/offers/OfferForm'
 import { createClient } from '@/lib/supabase/client'
 import type { OfferFormValues } from '@/lib/validations'
-import type { Business, } from '@/types/business.types'
+import type { Business } from '@/types/business.types'
 import type { Offer } from '@/types/offer.types'
 import { toast } from 'sonner'
 
@@ -24,7 +24,7 @@ export default function EditOfferPage() {
       if (!user) return
 
       const [{ data: offerData }, { data: bizData }] = await Promise.all([
-        supabase.from('offers').select('*').eq('id', offerId).single(),
+        supabase.from('offers').select('*').eq('id', offerId).single<Offer>(),
         supabase.from('businesses').select('*').eq('owner_id', user.id),
       ])
 
@@ -53,7 +53,7 @@ export default function EditOfferPage() {
         .select('id')
         .eq('id', data.business_id)
         .eq('owner_id', user.id)
-        .single()
+        .single<{ id: string }>()
 
       if (!business) throw new Error('No tienes permiso para editar esta oferta')
 
@@ -105,8 +105,8 @@ export default function EditOfferPage() {
           business_id: offer.business_id,
           title: offer.title,
           description: offer.description ?? '',
-          original_price: offer.original_price,
-          offer_price: offer.offer_price,
+          original_price: offer.original_price ?? undefined,
+          offer_price: offer.offer_price ?? undefined,
           start_date: offer.start_date.slice(0, 16),
           end_date: offer.end_date.slice(0, 16),
           image_url: offer.image_url ?? '',

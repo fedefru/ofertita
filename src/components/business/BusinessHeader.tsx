@@ -36,7 +36,7 @@ export function BusinessHeader({ business }: BusinessHeaderProps) {
 
         <div className="flex-1 space-y-1">
           <h1 className="text-2xl font-bold">{business.name}</h1>
-          <CategoryBadge name={business.category.name} color={business.category.color} />
+          <CategoryBadge name={business.category.name} color={business.category.color ?? undefined} />
 
           <div className="flex flex-wrap gap-4 pt-2 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">

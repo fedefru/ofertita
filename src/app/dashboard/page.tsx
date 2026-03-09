@@ -26,6 +26,7 @@ export default async function DashboardPage() {
       .from('offers')
       .select('view_count, save_count, is_active, end_date')
       .eq('business_id', business.id)
+      .returns<{ view_count: number; save_count: number; is_active: boolean; end_date: string }[]>()
 
     for (const offer of offers ?? []) {
       totalViews += offer.view_count ?? 0

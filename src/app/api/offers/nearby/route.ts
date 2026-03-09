@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const lat = parseFloat(searchParams.get('lat') ?? '')
   const lng = parseFloat(searchParams.get('lng') ?? '')
   const radius = parseInt(searchParams.get('radius') ?? '5000')
-  const category = searchParams.get('category') || null
+  const category = searchParams.get('category') || undefined
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '20'), 50)
   const offset = parseInt(searchParams.get('offset') ?? '0')
 

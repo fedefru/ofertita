@@ -47,7 +47,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
               <p className="text-xs text-muted-foreground">{business.city}</p>
               <CategoryBadge
                 name={business.category.name}
-                color={business.category.color}
+                color={business.category.color ?? undefined}
               />
             </div>
           </div>

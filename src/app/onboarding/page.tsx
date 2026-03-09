@@ -23,6 +23,7 @@ export default function OnboardingPage() {
       .from('categories')
       .select('*')
       .order('name')
+      .returns<Category[]>()
       .then(({ data }) => setCategories(data ?? []))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -34,28 +34,30 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
     notFound()
   }
 
-  const activeOffers = (business.offers ?? [])
+  const biz = business!
+
+  const activeOffers = (biz.offers ?? [])
     .filter((o: { is_active: boolean; end_date: string }) =>
       o.is_active && new Date(o.end_date) >= new Date()
     )
     .map((offer: Record<string, unknown>) => ({
       ...offer,
-      business_id: business.id,
-      business_name: business.name,
-      business_slug: business.slug,
-      business_logo: business.logo_url,
-      business_lat: business.lat,
-      business_lng: business.lng,
-      category_name: (business.category as { name: string }).name,
-      category_slug: (business.category as { slug: string }).slug,
-      category_color: (business.category as { color: string }).color,
+      business_id: biz.id,
+      business_name: biz.name,
+      business_slug: biz.slug,
+      business_logo: biz.logo_url,
+      business_lat: biz.lat,
+      business_lng: biz.lng,
+      category_name: biz.category.name,
+      category_slug: biz.category.slug,
+      category_color: biz.category.color,
       distance_meters: 0,
     })) as NearbyOffer[]
 
   return (
     <div className="container py-8 space-y-8">
-      <BusinessHeader business={business as unknown as BusinessWithCategory} />
-      <BusinessOwnerBar businessSlug={business.slug} businessId={business.id} />
+      <BusinessHeader business={biz as unknown as BusinessWithCategory} />
+      <BusinessOwnerBar businessSlug={biz.slug} businessId={biz.id} />
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">
