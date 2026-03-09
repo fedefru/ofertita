@@ -17,7 +17,7 @@ export async function GET() {
     .select('slug')
     .eq('owner_id', user.id)
     .limit(1)
-    .maybeSingle()
+    .maybeSingle<{ slug: string }>()
 
   return NextResponse.json({ slug: data?.slug ?? null })
 }
