@@ -21,7 +21,6 @@ export function useGeolocation(fallback: Coordinates = DEFAULT_FALLBACK): Geoloc
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isPermissionDenied, setIsPermissionDenied] = useState(false)
-  const [watchId, setWatchId] = useState<number | null>(null)
 
   const startWatch = useCallback(() => {
     if (!navigator.geolocation) {
@@ -34,7 +33,7 @@ export function useGeolocation(fallback: Coordinates = DEFAULT_FALLBACK): Geoloc
     setIsLoading(true)
     setError(null)
 
-    const id = navigator.geolocation.watchPosition(
+    navigator.geolocation.getCurrentPosition(
       (position) => {
         setCoordinates({
           lat: position.coords.latitude,
@@ -56,29 +55,18 @@ export function useGeolocation(fallback: Coordinates = DEFAULT_FALLBACK): Geoloc
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 30000,
+        maximumAge: 300000,
       }
     )
-
-    setWatchId(id)
   }, [fallback])
 
   useEffect(() => {
     startWatch()
-
-    return () => {
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId)
-      }
-    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const refresh = useCallback(() => {
-    if (watchId !== null) {
-      navigator.geolocation.clearWatch(watchId)
-    }
     startWatch()
-  }, [watchId, startWatch])
+  }, [startWatch])
 
   return { coordinates, isLoading, error, isPermissionDenied, refresh }
 }

@@ -74,8 +74,8 @@ export function OfferFilters({
     <div className="space-y-2.5">
       {/* ── Row 1: Categories ────────────────────────────────── */}
       <div
-        className="flex gap-2 overflow-x-auto pb-0.5"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex gap-2 overflow-x-scroll pb-0.5"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
         <Chip active={selectedCategory === null} onClick={() => onCategoryChange(null)}>
           Todas
@@ -99,8 +99,8 @@ export function OfferFilters({
 
       {/* ── Row 2: Distance + quick filters ─────────────────── */}
       <div
-        className="flex gap-2 overflow-x-auto pb-0.5"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex gap-2 overflow-x-scroll pb-0.5"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       >
         {DISTANCE_OPTS.map((opt) => (
           <Chip

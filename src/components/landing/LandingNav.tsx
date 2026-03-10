@@ -41,7 +41,7 @@ export function LandingNav() {
             alt="Ofertita"
             width={100}
             height={30}
-            className="h-7 w-auto"
+            className="h-8 w-auto"
             priority
           />
         </Link>
