@@ -13,7 +13,6 @@ export function BusinessOffersSection({ offers }: BusinessOffersSectionProps) {
   const { user } = useAuth()
   const { isSaved, toggleSave, savedIds } = useSavedOffers({
     userId: user?.id ?? '',
-    initialSavedIds: [],
   })
 
   if (offers.length === 0) {
