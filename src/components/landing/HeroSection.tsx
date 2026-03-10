@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Check } from 'lucide-react'
@@ -12,7 +13,37 @@ const TRUST_ITEMS = [
   'Comercios verificados',
 ]
 
+async function reverseGeocode(lat: number, lng: number): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=12`,
+      { headers: { 'Accept-Language': 'es', 'User-Agent': 'Ofertita/1.0' } }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    const a = data.address ?? {}
+    return a.suburb ?? a.neighbourhood ?? a.city_district ?? a.city ?? a.town ?? a.village ?? null
+  } catch {
+    return null
+  }
+}
+
 export function HeroSection() {
+  const [locationName, setLocationName] = useState<string>('tu zona')
+
+  useEffect(() => {
+    if (!navigator.geolocation) return
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const name = await reverseGeocode(pos.coords.latitude, pos.coords.longitude)
+        if (name) setLocationName(name)
+      },
+      () => {}, // silently ignore if denied
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+    )
+  }, [])
+
   return (
     <section
       className="relative px-4 pb-16 pt-32 text-center"
@@ -43,7 +74,7 @@ export function HeroSection() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
             </span>
-            12 ofertas activas ahora en Wilde
+            12 ofertas activas ahora en {locationName}
           </span>
         </motion.div>
 
