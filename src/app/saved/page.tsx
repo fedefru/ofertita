@@ -46,7 +46,8 @@ export default async function SavedPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {savedOffers.map((saved) => {
-            const offer = saved.offer as NonNullable<typeof saved.offer>
+            const offer = saved.offer
+            if (!offer) return null
             const { label, isUrgent, isExpired } = formatTimeLeft(offer.end_date)
 
             return (

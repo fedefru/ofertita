@@ -20,7 +20,7 @@ export async function getSavedOffersByUser(userId: string): Promise<SavedOffer[]
     .returns<SavedOffer[]>()
 
   if (error) throw error
-  return data ?? []
+  return (data ?? []).filter((s) => s.offer !== null) as SavedOffer[]
 }
 
 export async function getSavedOfferIds(userId: string): Promise<string[]> {
