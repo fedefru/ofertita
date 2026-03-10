@@ -89,7 +89,7 @@ export default async function DashboardPage() {
           <h2 className="text-base font-semibold">Tus comercios</h2>
           {businesses.map((biz) => (
             <Card key={biz.id}>
-              <CardContent className="flex items-center justify-between py-4 px-5">
+              <CardContent className="flex flex-col gap-3 py-4 px-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
                   {biz.logo_url ? (
                     <img
