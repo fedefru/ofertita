@@ -43,7 +43,6 @@ export default function ExplorePage() {
 
   const { isSaved, toggleSave, savedIds } = useSavedOffers({
     userId: user?.id ?? '',
-    initialSavedIds: [],
   })
 
   useEffect(() => {

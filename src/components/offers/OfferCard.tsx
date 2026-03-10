@@ -246,9 +246,9 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
         {/* Content */}
         <div className="space-y-1.5 p-3">
           {/* Category + time until expiry */}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
             <span
-              className="min-w-0 truncate inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+              className="inline-flex items-center self-start rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
               style={{ backgroundColor: categoryBg, color: categoryColor }}
             >
               {offer.category_name}

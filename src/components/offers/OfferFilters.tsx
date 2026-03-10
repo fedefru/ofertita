@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef, useState, useCallback } from 'react'
 import { MapPin, Clock, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Category } from '@/types/business.types'
@@ -26,6 +27,38 @@ const DISTANCE_OPTS = [
   { label: 'Todo el barrio', value: 5000 },
   { label: 'Sin límite', value: 10000 },
 ] as const
+
+// ─── ScrollRow ────────────────────────────────────────────────────────────────
+
+function ScrollRow({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [atEnd, setAtEnd] = useState(false)
+
+  const onScroll = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4)
+  }, [])
+
+  return (
+    <div className="relative">
+      <div
+        ref={ref}
+        onScroll={onScroll}
+        className="overflow-x-scroll pb-0.5"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+      >
+        <div className="flex min-w-max gap-2">{children}</div>
+      </div>
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#F8FAFC]/80 to-transparent transition-opacity duration-300',
+          atEnd ? 'opacity-0' : 'opacity-100'
+        )}
+      />
+    </div>
+  )
+}
 
 // ─── Chip ─────────────────────────────────────────────────────────────────────
 
@@ -73,14 +106,10 @@ export function OfferFilters({
   return (
     <div className="space-y-2.5">
       {/* ── Row 1: Categories ────────────────────────────────── */}
-      <div
-        className="flex gap-2 overflow-x-scroll pb-0.5"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
-      >
+      <ScrollRow>
         <Chip active={selectedCategory === null} onClick={() => onCategoryChange(null)}>
           Todas
         </Chip>
-
         {categories.map((cat) => (
           <Chip
             key={cat.id}
@@ -95,13 +124,10 @@ export function OfferFilters({
             {cat.name}
           </Chip>
         ))}
-      </div>
+      </ScrollRow>
 
       {/* ── Row 2: Distance + quick filters ─────────────────── */}
-      <div
-        className="flex gap-2 overflow-x-scroll pb-0.5"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
-      >
+      <ScrollRow>
         {DISTANCE_OPTS.map((opt) => (
           <Chip
             key={opt.value}
@@ -141,7 +167,7 @@ export function OfferFilters({
           <Zap className="h-3 w-3" />
           Publicado hace &lt;1h
         </Chip>
-      </div>
+      </ScrollRow>
     </div>
   )
 }

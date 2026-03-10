@@ -35,19 +35,20 @@ export function LandingNav() {
         }}
       >
         {/* Logo */}
+        {/* Logo */}
         <Link href="/" className="flex items-center px-3 py-1">
           <Image
             src="/logo.png"
             alt="Ofertita"
-            width={100}
-            height={30}
-            className="h-8 w-auto"
+            width={120}
+            height={36}
+            className="h-9 w-auto"
             priority
           />
         </Link>
 
-        {/* Separator */}
-        <div className="mx-1 h-5 w-px bg-black/8" />
+        {/* Separator — hidden on mobile */}
+        <div className="mx-1 hidden h-5 w-px bg-black/8 md:block" />
 
         {/* Nav links — hidden on mobile */}
         <nav className="hidden items-center md:flex">
@@ -68,14 +69,13 @@ export function LandingNav() {
         {/* Separator — hidden on mobile */}
         <div className="mx-1 hidden h-5 w-px bg-black/8 md:block" />
 
-        {/* CTA */}
+        {/* CTA — icon only on mobile, text + icon on sm+ */}
         <Link
           href="/explore"
-          className="group flex items-center gap-1.5 rounded-full bg-[#F97316] px-4 py-2 text-[13px] font-semibold text-white transition-all hover:bg-[#EA580C] hover:shadow-[0_4px_16px_rgba(249,115,22,0.4)]"
+          className="group flex items-center justify-center gap-1.5 rounded-full bg-[#F97316] p-2.5 text-[13px] font-semibold text-white transition-all hover:bg-[#EA580C] hover:shadow-[0_4px_16px_rgba(249,115,22,0.4)] sm:px-4 sm:py-2"
         >
           <span className="hidden sm:inline">Explorar</span>
-          <span className="sm:hidden">Ver ofertas</span>
-          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 sm:h-3.5 sm:w-3.5" />
         </Link>
       </div>
     </motion.header>

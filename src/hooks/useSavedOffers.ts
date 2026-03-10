@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/types/database.types'
 import { toast } from 'sonner'
@@ -9,13 +9,22 @@ type SavedOfferInsert = Database['public']['Tables']['saved_offers']['Insert']
 
 interface UseSavedOffersOptions {
   userId: string
-  initialSavedIds?: string[]
 }
 
-export function useSavedOffers({ userId, initialSavedIds = [] }: UseSavedOffersOptions) {
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set(initialSavedIds))
+export function useSavedOffers({ userId }: UseSavedOffersOptions) {
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
   const supabase = createClient()
 
+  useEffect(() => {
+    if (!userId) return
+    createClient()
+      .from('saved_offers')
+      .select('offer_id')
+      .eq('user_id', userId)
+      .then(({ data }) => {
+        if (data) setSavedIds(new Set(data.map((r) => r.offer_id)))
+      })
+  }, [userId])
   const isSaved = useCallback(
     (offerId: string) => savedIds.has(offerId),
     [savedIds]
