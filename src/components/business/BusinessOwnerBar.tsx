@@ -21,7 +21,7 @@ export function BusinessOwnerBar({ businessSlug, businessId }: BusinessOwnerBarP
       <p className="text-[13px] font-semibold text-[#92400E] sm:mr-auto">
         Este es tu comercio
       </p>
-      <div className="flex w-full items-center gap-2 sm:w-auto">
+      <div className="grid grid-cols-3 gap-2 sm:flex sm:w-auto sm:items-center">
         <Button
           size="sm"
           variant="outline"
