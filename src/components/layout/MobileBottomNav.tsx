@@ -8,14 +8,16 @@ import { useAuth } from '@/hooks/useAuth'
 
 export function MobileBottomNav() {
   const pathname = usePathname()
-  const { isOwner } = useAuth()
+  const { isOwner, isLoading } = useAuth()
 
   const items = [
     { href: '/explore', label: 'Explorar', icon: Compass },
     { href: '/saved', label: 'Guardados', icon: Bookmark },
-    ...(isOwner
-      ? [{ href: '/dashboard', label: 'Panel', icon: LayoutDashboard }]
-      : [{ href: '/onboarding', label: 'Mi comercio', icon: Store }]),
+    ...(!isLoading
+      ? isOwner
+        ? [{ href: '/dashboard', label: 'Panel', icon: LayoutDashboard }]
+        : [{ href: '/onboarding', label: 'Mi comercio', icon: Store }]
+      : []),
   ]
 
   return (

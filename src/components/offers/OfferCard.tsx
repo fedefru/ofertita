@@ -230,7 +230,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
           {/* Discount badge */}
           {hasDiscount && (
             <span
-              className="absolute bottom-3 left-3 rounded-full bg-[#6366F1] px-2.5 py-1.5 text-[12px] font-black text-white"
+              className="absolute bottom-3 left-3 rounded-full bg-[#6366F1] px-2.5 py-1.5 text-[10px] font-black text-white"
               style={{ boxShadow: '0 2px 8px rgba(99,102,241,0.45)' }}
             >
               {formatDiscountPct(offer.discount_pct)}
@@ -253,7 +253,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
             >
               {offer.category_name}
             </span>
-            <span className={timeClass}>
+            <span className={cn(timeClass, 'hidden sm:inline-flex')}>
               <Clock className="h-3 w-3" />
               {timeLabel}
             </span>
@@ -269,7 +269,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
 
           {/* Price */}
           {hasPrice ? (
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex flex-wrap items-baseline gap-1.5">
               <span className="text-[16px] font-black text-[#F97316]">
                 {formatCurrency(offer.offer_price)}
               </span>
@@ -284,7 +284,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
           )}
 
           {/* Distance + time since published */}
-          <div className="flex items-center justify-between pt-0.5">
+          <div className="flex flex-col gap-0.5 pt-0.5 sm:flex-row sm:items-center sm:justify-between">
             <span className="flex items-center gap-1 text-[11px] text-[#94A3B8]">
               <MapPin className="h-3 w-3" />
               {metersToBlocks(offer.distance_meters)}
