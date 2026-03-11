@@ -1,5 +1,4 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -11,20 +10,22 @@ export async function GET(request: NextRequest) {
   const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/explore'
 
   if (code) {
-    const cookieStore = await cookies()
+    // Create the redirect response first so session cookies are set directly on it
+    const redirectResponse = NextResponse.redirect(`${origin}${next}`)
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           get(name: string) {
-            return cookieStore.get(name)?.value
+            return request.cookies.get(name)?.value
           },
           set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set(name, value, options)
+            redirectResponse.cookies.set(name, value, options)
           },
           remove(name: string, options: CookieOptions) {
-            cookieStore.set(name, '', { ...options, maxAge: 0 })
+            redirectResponse.cookies.set(name, '', { ...options, maxAge: 0 })
           },
         },
       }
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      return redirectResponse
     }
 
     console.error('[auth/callback] exchangeCodeForSession error:', error)
