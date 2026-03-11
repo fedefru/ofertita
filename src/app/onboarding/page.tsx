@@ -18,6 +18,18 @@ function OnboardingContent() {
   const [isLoading, setIsLoading] = useState(false)
   const supabase = createClient()
 
+  // Redirect if user already has a business
+  useEffect(() => {
+    supabase
+      .from('businesses')
+      .select('id')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) router.replace('/dashboard')
+      })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     supabase
       .from('categories')

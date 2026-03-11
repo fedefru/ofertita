@@ -221,7 +221,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
 
           {/* Live badge */}
           {isRecent && (
-            <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/40 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+            <span className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-black/40 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-sm sm:left-3 sm:top-3 sm:gap-1.5 sm:px-2 sm:py-1 sm:text-[10px]">
               <LiveDot />
               Live
             </span>
@@ -230,7 +230,7 @@ export function OfferCard({ offer, isSaved, onToggleSave, featured = false }: Of
           {/* Discount badge */}
           {hasDiscount && (
             <span
-              className="absolute bottom-3 left-3 rounded-full bg-[#6366F1] px-2.5 py-1.5 text-[10px] font-black text-white"
+              className="absolute bottom-2 left-2 rounded-full bg-[#6366F1] px-2 py-1 text-[9px] font-black text-white sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1.5 sm:text-[10px]"
               style={{ boxShadow: '0 2px 8px rgba(99,102,241,0.45)' }}
             >
               {formatDiscountPct(offer.discount_pct)}

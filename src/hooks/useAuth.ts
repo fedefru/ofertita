@@ -70,7 +70,8 @@ export function useAuth(): AuthState {
   }
 
   const role = (profile?.role ?? null) as 'viewer' | 'business_owner' | 'admin' | null
-  const isOwner = role === 'business_owner'
+  // Fallback: if profile role is out of sync but user has a business, treat as owner
+  const isOwner = role === 'business_owner' || businessSlug !== null
 
   return { user, profile, role, isOwner, isLoading, businessSlug }
 }
