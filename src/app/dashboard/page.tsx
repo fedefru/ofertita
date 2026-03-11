@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getBusinessesByOwner } from '@/lib/supabase/queries/businesses'
@@ -92,9 +93,11 @@ export default async function DashboardPage() {
               <CardContent className="flex flex-col gap-3 py-4 px-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
                   {biz.logo_url ? (
-                    <img
+                    <Image
                       src={biz.logo_url}
                       alt={biz.name}
+                      width={44}
+                      height={44}
                       className="h-11 w-11 rounded-lg object-cover border"
                     />
                   ) : (

@@ -76,7 +76,6 @@ export async function getOfferById(id: string) {
 export async function incrementViewCount(offerId: string) {
   const supabase = await createClient()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase as any).rpc('increment_view_count', { offer_id: offerId })
 }
 

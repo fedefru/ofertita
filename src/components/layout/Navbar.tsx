@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
@@ -29,13 +30,9 @@ export function Navbar() {
   const pathname = usePathname()
 
   async function handleSignOut() {
-    try {
-      await fetch('/api/auth/signout', { method: 'POST' })
-    } catch {
-      // Redirect regardless
-    } finally {
-      window.location.href = '/login'
-    }
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = '/login'
   }
 
   const initials = profile?.display_name

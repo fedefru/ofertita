@@ -181,7 +181,6 @@ export function MapView({ offers, userLocation, center, onOfferClick }: MapViewP
       if (cancelled || !mapRef.current || mapInstanceRef.current) return
 
       // Suppress default Leaflet icon path resolution
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl
 
       const map = L.map(mapRef.current!, {
